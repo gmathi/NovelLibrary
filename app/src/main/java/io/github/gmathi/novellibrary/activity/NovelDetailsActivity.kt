@@ -35,6 +35,7 @@ import io.github.gmathi.novellibrary.databinding.ContentNovelDetailsBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.network.HostNames
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareProgress
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
 import io.github.gmathi.novellibrary.util.system.*
@@ -58,10 +59,17 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     private lateinit var binding: ActivityNovelDetailsBinding
     private lateinit var contentBinding: ContentNovelDetailsBinding
 
+    private var isLoadingDetails = false
+
     private val cloudflareResolverLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
+            val cookiesSaved = result.data?.getBooleanExtra(
+                CloudflareResolverActivity.RESULT_COOKIES_SAVED, false
+            ) ?: false
+            io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
+                .onManualVerificationComplete("https://${HostNames.NOVEL_UPDATES}", cookiesSaved)
             viewModel.onCloudflareResolved()
         }
     }
@@ -104,21 +112,25 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                     contentBinding.swipeRefreshLayout.isRefreshing = false
                     when (state) {
                         is NovelDetailsUiState.Loading -> {
+                            isLoadingDetails = true
                             contentBinding.progressLayout.showLoading()
                         }
 
                         is NovelDetailsUiState.Success -> {
+                            isLoadingDetails = false
                             setupViews(state.novel)
                             contentBinding.progressLayout.showContent()
                         }
 
                         is NovelDetailsUiState.NoInternet -> {
+                            isLoadingDetails = false
                             contentBinding.progressLayout.noInternetError(
                                 View.OnClickListener { viewModel.refresh() }
                             )
                         }
 
                         is NovelDetailsUiState.Error -> {
+                            isLoadingDetails = false
                             contentBinding.progressLayout.showError(
                                 errorText = getString(R.string.failed_to_load_url),
                                 buttonText = getString(R.string.try_again),
@@ -127,6 +139,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                         }
 
                         is NovelDetailsUiState.MissingSource -> {
+                            isLoadingDetails = false
                             contentBinding.progressLayout.showError(
                                 errorText = getString(R.string.missing_source_id_error),
                                 buttonText = getString(R.string.delete_novel),
@@ -138,10 +151,19 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                         }
 
                         is NovelDetailsUiState.CloudflareChallenge -> {
+                            isLoadingDetails = false
                             showCloudflareResolverDialog()
                         }
                     }
                 }
+            }
+        }
+
+        // Live Cloudflare/verification progress from the network interceptor, shown while the
+        // novel-details load is in flight.
+        CloudflareProgress.status.observe(this) { msg ->
+            if (isLoadingDetails && !msg.isNullOrBlank()) {
+                contentBinding.progressLayout.updateLoadingStatus(msg)
             }
         }
     }

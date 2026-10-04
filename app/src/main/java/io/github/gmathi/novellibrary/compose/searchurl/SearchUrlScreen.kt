@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
 import io.github.gmathi.novellibrary.compose.search.CloudflareDialog
 import io.github.gmathi.novellibrary.compose.search.SearchUrlNovelItemWrapper
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlUiState
 import io.github.gmathi.novellibrary.viewmodel.SearchUrlViewModel
 
@@ -46,6 +47,10 @@ fun SearchUrlScreen(
         contract = ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == Activity.RESULT_OK) {
+            val cookiesSaved = result.data?.getBooleanExtra(
+                CloudflareResolverActivity.RESULT_COOKIES_SAVED, false
+            ) ?: false
+            CloudflareInterceptor.onManualVerificationComplete(cloudflareUrl, cookiesSaved)
             viewModel.retry()
         }
         showCloudflareDialog = false

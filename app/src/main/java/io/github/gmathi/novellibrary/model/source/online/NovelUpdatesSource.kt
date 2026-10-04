@@ -209,10 +209,7 @@ class NovelUpdatesSource : ParsedHttpSource() {
     }
 
     override suspend fun getChapterList(novel: Novel): List<WebPage> {
-        return if (dataCenter.useNUAPIFetch)
-            getChaptersFromAPI(novel)
-        else
-            getChaptersFromDoc(novel)
+        return getChaptersFromAPI(novel)
     }
 
     private suspend fun getChaptersFromAPI(novel: Novel): List<WebPage> {

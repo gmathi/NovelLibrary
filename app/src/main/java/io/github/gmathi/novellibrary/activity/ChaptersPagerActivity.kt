@@ -32,6 +32,7 @@ import io.github.gmathi.novellibrary.model.other.DownloadWebPageEvent
 import io.github.gmathi.novellibrary.model.other.EventType
 import io.github.gmathi.novellibrary.service.download.DownloadListener
 import io.github.gmathi.novellibrary.service.download.DownloadNovelService
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareProgress
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.ALL_TRANSLATOR_SOURCES
 import io.github.gmathi.novellibrary.util.analytics.FAC
@@ -57,6 +58,11 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
         if (result.resultCode == RESULT_OK) {
+            val cookiesSaved = result.data?.getBooleanExtra(
+                CloudflareResolverActivity.RESULT_COOKIES_SAVED, false
+            ) ?: false
+            io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
+                .onManualVerificationComplete(vm.cloudflareGatedUrl ?: vm.novel.url, cookiesSaved)
             vm.getData(forceUpdate = true)
         }
     }
@@ -82,6 +88,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     private var progressMessage = "In Progress…"
     private var isSyncing = false
     private var isChaptersProcessing = false
+    private var isLoadingChapters = false
 
     private val snackProgressBarManager by lazy { Utils.createSnackProgressBarManager(findViewById(android.R.id.content), this) }
     private var snackProgressBar: SnackProgressBar? = null
@@ -151,10 +158,12 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 //Update loading status
                 when (newStatus) {
                     Constants.Status.START -> {
+                        isLoadingChapters = true
                         binding.activityChaptersPager.progressLayout.showLoading(loadingText = getString(R.string.loading))
                     }
 
                     Constants.Status.EMPTY_DATA -> {
+                        isLoadingChapters = false
                         binding.activityChaptersPager.progressLayout.showEmpty(
                             resId = R.raw.monkey_logo,
                             isLottieAnimation = true,
@@ -163,6 +172,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     }
 
                     Constants.Status.NETWORK_ERROR -> {
+                        isLoadingChapters = false
                         binding.activityChaptersPager.progressLayout.showError(
                             errorText = getString(R.string.failed_to_load_url),
                             buttonText = getString(R.string.try_again)
@@ -172,6 +182,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     }
 
                     Constants.Status.CLOUDFLARE -> {
+                        isLoadingChapters = false
                         binding.activityChaptersPager.progressLayout.showError(
                             errorText = getString(R.string.cloudflare_verification_message),
                             buttonText = getString(R.string.resolve_manually)
@@ -183,6 +194,7 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     }
 
                     Constants.Status.NU_LOGIN -> {
+                        isLoadingChapters = false
                         binding.activityChaptersPager.progressLayout.showError(
                             errorText = getString(R.string.nu_login_required_message),
                             buttonText = getString(R.string.nu_login)
@@ -196,12 +208,14 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                     }
 
                     Constants.Status.NO_INTERNET -> {
+                        isLoadingChapters = false
                         binding.activityChaptersPager.progressLayout.noInternetError {
                             vm.getData()
                         }
                     }
 
                     Constants.Status.DONE -> {
+                        isLoadingChapters = false
                         isSyncing = false
                         binding.activityChaptersPager.progressLayout.showContent()
                         setViewPager()
@@ -213,6 +227,15 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                         binding.activityChaptersPager.progressLayout.updateLoadingStatus(newStatus)
                     }
                 }
+            }
+        }
+
+        // Live Cloudflare/verification progress from the network interceptor, shown while a
+        // chapter load is in flight so the user sees what's happening (challenge detected,
+        // verifying, falling back to in-app browser fetch, etc.) instead of a bare spinner.
+        CloudflareProgress.status.observe(this) { msg ->
+            if (isLoadingChapters && !msg.isNullOrBlank()) {
+                binding.activityChaptersPager.progressLayout.updateLoadingStatus(msg)
             }
         }
 

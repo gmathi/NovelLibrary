@@ -20,6 +20,7 @@ import io.github.gmathi.novellibrary.util.view.extensions.isOutdated
 import io.github.gmathi.novellibrary.util.view.extensions.setDefaultSettings
 import okhttp3.Cookie
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.Interceptor
 import okhttp3.Request
 import okhttp3.Response
@@ -62,70 +63,23 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
         initWebView
 
-        try {
-            // When the "use WebView fetcher" setting is on, route every GET/POST request
-            // straight through the WebView instead of OkHttp. This keeps every request on the
-            // same TLS/JS fingerprint the WebView presents (and whatever cf_clearance cookies
-            // it already holds), rather than only switching to the WebView after OkHttp hits a
-            // challenge. Resource requests (images, fonts, etc.) are excluded since
-            // WebViewFetcher always returns HTML (via document.documentElement.outerHTML) and
-            // can't serve binary content.
-            val requestPath = originalRequest.url.encodedPath.lowercase()
-            val isDirectFetchResourceRequest = RESOURCE_EXTENSIONS.any { requestPath.endsWith(it) }
-            val isDirectFetchableMethod = originalRequest.method == "GET" || originalRequest.method == "POST"
-            if (dataCenter.useWebViewFetcherForCloudflare &&
-                isDirectFetchableMethod &&
-                !isDirectFetchResourceRequest
-            ) {
-                try {
-                    Log.d(TAG, "useWebViewFetcherForCloudflare enabled, fetching directly via WebView (${originalRequest.method}): ${originalRequest.url}")
-                    val webViewResponse = if (originalRequest.method == "POST") {
-                        webViewFetcher.fetchPost(originalRequest)
-                    } else {
-                        webViewFetcher.fetch(originalRequest)
-                    }
-                    if (!isCloudflareChallenge(webViewResponse)) {
-                        recordBypassSuccess(originalRequest.url.host)
-                        return webViewResponse
-                    }
-                    Log.w(TAG, "WebView fetch returned a Cloudflare challenge for ${originalRequest.url}, attempting resolve + retry")
-                    webViewResponse.close()
+        val host = originalRequest.url.host
 
-                    // A real Cloudflare challenge came back on the direct WebView fetch. Solve
-                    // it (headless auto-solve; if that fails the interceptor throws
-                    // BYPASS_FAILED_PREFIX and the UI layer opens the manual CloudflareResolver),
-                    // then retry the ORIGINAL request — re-running fetchPost for a POST so the
-                    // method/body are preserved, not degraded to a GET.
-                    val challengeHost = originalRequest.url.host
-                    if (!shouldSkipBypass(challengeHost)) {
-                        val baseUrl = "${originalRequest.url.scheme}://${originalRequest.url.host}/"
-                        val bypassRequest = originalRequest.newBuilder().url(baseUrl).build()
-                        val oldCookie = networkHelper.cookieManager.get(baseUrl.toHttpUrl())
-                            .firstOrNull { it.name == "cf_clearance" }
-                        Log.d(TAG, "Resolving Cloudflare for $challengeHost then retrying ${originalRequest.method}")
-                        if (resolveWithWebView(bypassRequest, oldCookie)) {
-                            recordBypassSuccess(challengeHost)
-                            storeCloudflareCookies(originalRequest.url)
-                            val retry = if (originalRequest.method == "POST") {
-                                webViewFetcher.fetchPost(originalRequest)
-                            } else {
-                                webViewFetcher.fetch(originalRequest)
-                            }
-                            if (!isCloudflareChallenge(retry)) {
-                                return retry
-                            }
-                            Log.w(TAG, "Retry after resolve STILL got a challenge for $challengeHost")
-                            retry.close()
-                        } else {
-                            recordBypassFailure(challengeHost)
-                        }
-                    }
-                    // Resolve or retry didn't clear it — fall through to the OkHttp/bypass flow.
-                } catch (e: Exception) {
-                    Log.w(TAG, "Direct WebView fetch failed for ${originalRequest.url}: ${e.message}, falling back to OkHttp/bypass flow")
-                }
+        // Per-domain forced-WebView path. If this host has previously failed the API path
+        // twice (and the flag hasn't self-healed after 15 days), skip OkHttp entirely and
+        // serve via the WebView fetcher — unless this is a resource request (images/fonts),
+        // which the WebView fetch can't help with.
+        run {
+            val forcedPath = originalRequest.url.encodedPath.lowercase()
+            val forcedIsResource = RESOURCE_EXTENSIONS.any { forcedPath.endsWith(it) }
+            if (!forcedIsResource && dataCenter.isWebViewForced(host)) {
+                Log.d(TAG, "Host $host is forced to WebView fetcher; skipping API path")
+                CloudflareProgress.post("Using in-app browser fetch for $host…")
+                return runWebViewFetch(originalRequest, host)
             }
+        }
 
+        try {
             val response: Response
             try {
                 response = chain.proceed(originalRequest)
@@ -143,7 +97,14 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             Log.d(TAG, "Cloudflare challenge detected for ${originalRequest.url} (code=${response.code})")
             response.close()
 
-            val host = originalRequest.url.host
+            // For non-HTML resource requests (images, fonts, etc.) we won't attempt a bypass
+            // (handled below), so don't surface progress for them either — keep the status
+            // text about the actual page/chapter request the user is waiting on.
+            val challengePath = originalRequest.url.encodedPath.lowercase()
+            val isChallengeOnResource = RESOURCE_EXTENSIONS.any { challengePath.endsWith(it) }
+            if (!isChallengeOnResource) {
+                CloudflareProgress.post("Cloudflare challenge detected on $host…")
+            }
 
             // If we already have a cf_clearance cookie from a previous bypass (e.g. a concurrent
             // request that already solved the challenge), just retry with that cookie.
@@ -157,47 +118,23 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 // Ensure the cookie is also in the AndroidCookieJar so OkHttp sends it
                 syncCloudflareCookiesToJar(originalRequest.url)
 
-                if (dataCenter.useWebViewFetcherForCloudflare) {
-                    // TLS fingerprint mismatch: the cf_clearance cookie was obtained in a
-                    // WebView (Chromium BoringSSL) but OkHttp uses Java's SSLSocket, which has
-                    // a different fingerprint. Cloudflare frequently rejects the cookie when
-                    // OkHttp replays it, so go straight to the WebView fetch (same fingerprint
-                    // as whatever solved the challenge) instead of wasting a doomed retry.
-                    Log.d(TAG, "Existing clearance found for $host, fetching via WebView (skip OkHttp replay)")
-                    try {
-                        val webViewResponse = webViewFetcher.fetch(originalRequest)
-                        Log.d(TAG, "WebView fetch succeeded for $host (${originalRequest.url})")
-                        recordBypassSuccess(host)
-                        return webViewResponse
-                    } catch (e: Exception) {
-                        Log.e(TAG, "WebView fetch failed for $host: ${e.message}")
-                        // Clear stale cookies since the cached clearance didn't help
-                        networkHelper.cloudflareCookieManager.clearCookiesAllVariants(originalRequest.url)
-                        networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
-                        // Fall through to attempt headless WebView bypass
-                    }
+                Log.d(TAG, "Retrying with existing clearance for $host")
+                if (!isChallengeOnResource) CloudflareProgress.post("Retrying with saved verification…")
+                val retryResponse = chain.proceed(originalRequest)
+                Log.d(TAG, "Retry with existing clearance result: code=${retryResponse.code}, url=${originalRequest.url}")
+                if (isCloudflareChallenge(retryResponse)) {
+                    Log.w(TAG, "Retry with existing clearance STILL got Cloudflare challenge (TLS fingerprint mismatch likely). Forcing WebView fetch for $host")
+                    retryResponse.close()
+                    if (!isChallengeOnResource) CloudflareProgress.post("Falling back to in-app browser fetch…")
+                    // Stale clearance didn't work via OkHttp — clear it, force this host onto
+                    // the WebView fetcher, and serve via the unified path (method-aware; raises
+                    // the manual-verify handoff if the WebView itself is still challenged).
+                    networkHelper.cloudflareCookieManager.clearCookiesAllVariants(originalRequest.url)
+                    networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
+                    dataCenter.flagWebViewForced(host)
+                    return runWebViewFetch(originalRequest, host)
                 } else {
-                    Log.d(TAG, "Retrying with existing clearance for $host")
-                    val retryResponse = chain.proceed(originalRequest)
-                    Log.d(TAG, "Retry with existing clearance result: code=${retryResponse.code}, url=${originalRequest.url}")
-                    if (isCloudflareChallenge(retryResponse)) {
-                        Log.w(TAG, "Retry with existing clearance STILL got Cloudflare challenge (TLS fingerprint mismatch likely). Falling back to WebView fetch for $host")
-                        retryResponse.close()
-                        try {
-                            val webViewResponse = webViewFetcher.fetch(originalRequest)
-                            Log.d(TAG, "WebView fetch succeeded for $host (${originalRequest.url})")
-                            recordBypassSuccess(host)
-                            return webViewResponse
-                        } catch (e: Exception) {
-                            Log.e(TAG, "WebView fetch also failed for $host: ${e.message}")
-                            // Clear stale cookies since neither approach worked
-                            networkHelper.cloudflareCookieManager.clearCookiesAllVariants(originalRequest.url)
-                            networkHelper.cookieManager.remove(originalRequest.url, COOKIE_NAMES, 0)
-                            // Fall through to attempt headless WebView bypass
-                        }
-                    } else {
-                        return retryResponse
-                    }
+                    return retryResponse
                 }
             }
 
@@ -215,8 +152,11 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
 
             // Check if we should attempt bypass based on recent failures
             if (shouldSkipBypass(host)) {
-                Log.d(TAG, "Skipping bypass for $host (recent failure)")
-                throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
+                Log.d(TAG, "Skipping headless bypass for $host (recent failure); forcing WebView fetcher")
+                // A fresh headless solve just failed moments ago — don't hammer it again.
+                // Force this host onto the WebView fetcher and serve this request via it.
+                dataCenter.flagWebViewForced(host)
+                return runWebViewFetch(originalRequest, host)
             }
 
             // Use the base domain URL for WebView bypass instead of the original URL.
@@ -230,21 +170,37 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
                 .firstOrNull { it.name == "cf_clearance" }
 
             Log.d(TAG, "Attempting WebView bypass for $host (baseUrl=$baseUrl)")
+            CloudflareProgress.post("Verifying with Cloudflare…")
             val bypassSuccess = resolveWithWebView(bypassRequest, oldCookie)
             Log.d(TAG, "WebView bypass result for $host: $bypassSuccess")
 
             if (bypassSuccess) {
                 recordBypassSuccess(host)
+                CloudflareProgress.post("Verified — loading…")
                 // Store the new cookies in the per-host CloudflareCookieManager
                 storeCloudflareCookies(originalRequest.url)
                 // Log all cookies after bypass
                 val allCookies = networkHelper.cookieManager.get(originalRequest.url)
                 Log.d(TAG, "Cookies after bypass for $host: ${allCookies.map { "${it.name}=${it.value.take(20)}" }}")
-                return chain.proceed(originalRequest)
+                // Second API trial: retry OkHttp now that validation stored fresh clearance.
+                val secondTrial = chain.proceed(originalRequest)
+                if (!isCloudflareChallenge(secondTrial)) {
+                    return secondTrial
+                }
+                // Second API trial still blocked (TLS fingerprint mismatch): force this host
+                // onto the WebView fetcher for subsequent downloads, and serve this one via it.
+                Log.w(TAG, "Second API trial still challenged for $host; forcing WebView fetcher")
+                secondTrial.close()
+                dataCenter.flagWebViewForced(host)
+                return runWebViewFetch(originalRequest, host)
             } else {
                 recordBypassFailure(host)
-                Log.d(TAG, "WebView bypass failed for $host")
-                throw Exception(context.getString(R.string.information_cloudflare_bypass_failure))
+                Log.d(TAG, "WebView bypass failed for $host; forcing WebView fetcher and falling back")
+                // The API path has failed validation: force this host onto the WebView fetcher
+                // for subsequent downloads (self-heals after 15 days), and serve this request
+                // via it now. This matches the "second trial" terminal state of the chain.
+                dataCenter.flagWebViewForced(host)
+                return runWebViewFetch(originalRequest, host)
             }
         } catch (e: Exception) {
             Log.e(TAG, "Cloudflare intercept error for ${originalRequest.url}: ${e.message}")
@@ -455,6 +411,37 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         }
     }
 
+    /**
+     * Serve [request] via the WebView fetcher (POST uses the same-origin JS fetch; GET loads
+     * the page). If the WebView itself can't clear a Cloudflare challenge, surface it as a
+     * [BYPASS_FAILED_PREFIX] IOException carrying the gated URL so the UI layer routes the
+     * user to the manual resolver and resumes afterward.
+     */
+    private fun runWebViewFetch(request: Request, host: String): Response {
+        return try {
+            val response =
+                if (request.method.equals("POST", ignoreCase = true)) webViewFetcher.fetchPost(request)
+                else webViewFetcher.fetch(request)
+            // A WebView POST can still come back as a challenge body (fetchPost returns it with
+            // real headers). Treat that as a challenge needing manual verification.
+            if (isCloudflareChallenge(response)) {
+                response.close()
+                CloudflareProgress.post("Manual Cloudflare verification needed for $host…")
+                throw java.io.IOException(
+                    "$BYPASS_FAILED_PREFIX${request.url}: WebView fetch returned a Cloudflare challenge"
+                )
+            }
+            recordBypassSuccess(host)
+            response
+        } catch (e: CloudflareWebViewChallengeException) {
+            Log.w(TAG, "WebView fetch hit a Cloudflare challenge for $host: ${e.gatedUrl}")
+            CloudflareProgress.post("Manual Cloudflare verification needed for $host…")
+            // Reuse the established recovery contract: callers detect BYPASS_FAILED_PREFIX and
+            // open CloudflareResolverActivity, then retry.
+            throw java.io.IOException("$BYPASS_FAILED_PREFIX${e.gatedUrl}: ${e.message}", e)
+        }
+    }
+
     companion object {
         private const val TAG = "CloudflareInterceptor"
         private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare", "cf-ray")
@@ -487,6 +474,31 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
             val urlEnd = remainder.indexOf(": ")
             val url = if (urlEnd >= 0) remainder.substring(0, urlEnd) else remainder
             return url.trim().takeIf { it.isNotEmpty() }
+        }
+
+        /** The host of [url], or null if it can't be parsed. */
+        fun hostOf(url: String?): String? =
+            url?.toHttpUrlOrNull()?.host
+
+        /**
+         * Call after the user SUCCESSFULLY completes manual Cloudflare verification for [url].
+         *
+         * Step 1 of the post-verify sequence: clear the domain's forced-WebView flag so the
+         * API path is retried. Steps 2–3 (retry the API fetch; on failure re-flag + fall back
+         * to the WebView fetch) happen automatically when the caller re-issues the request —
+         * it re-enters [intercept], which with the flag cleared takes the API path first and,
+         * if it fails validation twice, re-flags the host and serves via the WebView fetcher
+         * (the same terminal path as the original second trial).
+         *
+         * No-op when [cookiesSaved] is false (the user backed out without solving), so a
+         * cancelled resolver never wrongly resets a domain.
+         */
+        fun onManualVerificationComplete(url: String?, cookiesSaved: Boolean) {
+            if (!cookiesSaved) return
+            val host = hostOf(url) ?: return
+            val dc: DataCenter by injectLazy()
+            dc.clearWebViewForced(host)
+            Log.d(TAG, "Manual verification complete for $host; cleared forced-WebView flag, API path will be retried")
         }
     }
 }

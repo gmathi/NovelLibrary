@@ -114,10 +114,9 @@
         <item>@string/scrolling_text</item>
         <item>@string/show_chapters_left_badge</item>
         <item>@string/dns_over_https</item>
-        <item>@string/nu_api_fetch</item>
+        <item>@string/forced_webview_domains</item>
         <item>@string/auto_app_update</item>
         <item>@string/download_storage_location</item>
-        <item>@string/use_webview_fetcher_for_cloudflare</item>
         <item>@string/clear_cloudflare_cookies</item>
     </string-array>
 
@@ -131,10 +130,9 @@
         <item>@string/scrolling_text_description</item>
         <item>@string/show_chapters_left_badge_description</item>
         <item>@string/dns_over_https_description</item>
-        <item>@string/nu_api_fetch_description</item>
+        <item>@string/forced_webview_domains_description</item>
         <item>@string/auto_app_update_description</item>
         <item>@string/download_storage_location_description</item>
-        <item>@string/use_webview_fetcher_for_cloudflare_description</item>
         <item>@string/clear_cloudflare_cookies_description</item>
     </string-array>
 
@@ -732,8 +730,6 @@
     <string name="dns_google">Google DNS</string>
     <string name="dns_none">None (use your network DNS)</string>
 
-    <string name="use_webview_fetcher_for_cloudflare">Use WebView fetcher for Cloudflare</string>
-    <string name="use_webview_fetcher_for_cloudflare_description">Fetch pages via WebView once verified, instead of replaying the cookie through the network client. More reliable, slightly slower.</string>
     <string name="clear_cloudflare_cookies">Clear Cloudflare cookies</string>
     <string name="clear_cloudflare_cookies_description">Remove all saved Cloudflare verification cookies for every site</string>
     <string name="clear_cloudflare_cookies_success">Cloudflare cookies cleared</string>
@@ -893,8 +889,11 @@
     <string name="app_update_tap_to_install">Tap to install v%s</string>
     <string name="app_update_download_failed">Update download failed</string>
 
-    <string name="nu_api_fetch">Use API for Chapters</string>
-    <string name="nu_api_fetch_description">Download chapters using API instead of Doc for NU</string>
+    <string name="forced_webview_domains">Forced WebView Domains</string>
+    <string name="forced_webview_domains_description">Domains that fell back to in-app browser fetching. Toggle off to retry the API path.</string>
+    <string name="forced_webview_domains_empty">No domains are using forced WebView fetching.</string>
+    <string name="forced_webview_domain_auto_clear">Auto-clears in %1$d day(s)</string>
+    <string name="forced_webview_domain_expires_today">Auto-clears today</string>
     <string name="reader_menu">Reader Menu</string>
 
     <string name="use_ai_tts">Use AI TTS</string>
