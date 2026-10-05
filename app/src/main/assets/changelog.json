@@ -1,6 +1,0 @@
-[
-  {
-    "name": "2.2.1",
-    "description": "• Cloudflare fetching is now automatic — removed the manual \"Use API for Chapters\" toggle. The app always tries the API first and only falls back to in-app browser (WebView) fetching per domain when the API path keeps failing.\n• Added a \"Forced WebView Domains\" screen under Settings → General, listing domains that fell back to WebView fetching. Each self-heals (reverts to the API path) automatically after 15 days, or you can toggle it off manually.\n• When a Cloudflare challenge can't be solved automatically, you're now routed to manual verification; after you solve it, the fetch resumes automatically.\n• Live loading status now shows what's happening (checking cache, verifying with Cloudflare, falling back to in-app browser, etc.) on search, novel details, chapter list, and chapter reading.\n• NovelUpdates chapter loading now gates on login cookies and prompts you to log in when they're missing.\n• Reader overlay: moved the floating menu button to screen center; moved the JavaScript toggle onto the bottom bar (styled like Reader Mode) and the Font control into the settings menu."
-  }
-]
