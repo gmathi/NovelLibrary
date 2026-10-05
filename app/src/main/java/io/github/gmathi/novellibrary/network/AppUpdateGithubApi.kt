@@ -6,6 +6,7 @@ import io.github.gmathi.novellibrary.model.other.LatestUpdate
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.lang.withIOContext
 import io.github.gmathi.novellibrary.util.logging.Logs
+import kotlinx.coroutines.CancellationException
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.*
 import uy.kohesive.injekt.injectLazy
@@ -23,6 +24,11 @@ internal class AppUpdateGithubApi {
         private const val CONTENTS_API_URL =
             "https://api.github.com/repos/gmathi/NovelLibrary/contents/?ref=releases"
 
+        // The releases branch's latest.json, which raw.githubusercontent.com serves without the
+        // API's limit of 60 requests an hour per address (phones on one mobile network share one)
+        private const val LATEST_JSON_URL =
+            "https://raw.githubusercontent.com/gmathi/NovelLibrary/releases/latest.json"
+
         // Raw download prefix for the releases branch
         private const val RAW_DOWNLOAD_PREFIX =
             "https://github.com/gmathi/NovelLibrary/raw/releases/"
@@ -33,11 +39,26 @@ internal class AppUpdateGithubApi {
     }
 
     /**
+     * The latest release, from the releases branch: its file listing, or its latest.json when the
+     * GitHub API refuses the listing (such as when the address has used up its hourly requests).
+     */
+    private suspend fun getLatestUpdate(): LatestUpdate? {
+        return try {
+            getLatestFromListing()
+        } catch (e: CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            Logs.warning(TAG, "Release listing failed, reading latest.json instead: ${e.localizedMessage}")
+            getLatestFromJson()
+        }
+    }
+
+    /**
      * Fetches the file listing from the releases branch via the GitHub Contents API,
      * finds all APK files, parses version info from filenames, and returns the latest.
      */
     @OptIn(ExperimentalSerializationApi::class)
-    private suspend fun getLatestUpdate(): LatestUpdate? {
+    private suspend fun getLatestFromListing(): LatestUpdate? {
         return withIOContext {
             val response = networkService.client
                 .newCall(GET(CONTENTS_API_URL))
@@ -56,6 +77,21 @@ internal class AppUpdateGithubApi {
 
             // Return the one with the highest versionCode
             apkEntries.maxByOrNull { it.versionCode }
+        }
+    }
+
+    /** Reads the release named in the releases branch's latest.json. */
+    @OptIn(ExperimentalSerializationApi::class)
+    private suspend fun getLatestFromJson(): LatestUpdate? {
+        return withIOContext {
+            val json = networkService.client
+                .newCall(GET(LATEST_JSON_URL))
+                .await()
+                .parseAs<JsonObject>()
+            val versionCode = json["versionCode"]?.jsonPrimitive?.intOrNull ?: return@withIOContext null
+            val versionName = json["versionName"]?.jsonPrimitive?.contentOrNull ?: return@withIOContext null
+            val apk = json["apk"]?.jsonPrimitive?.contentOrNull ?: return@withIOContext null
+            LatestUpdate(versionCode = versionCode, versionName = versionName, apk = apk)
         }
     }
 

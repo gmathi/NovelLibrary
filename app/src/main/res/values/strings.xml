@@ -894,6 +894,13 @@
     <string name="app_update_downloading">Downloading update…</string>
     <string name="app_update_tap_to_install">Tap to install v%s</string>
     <string name="app_update_download_failed">Update download failed</string>
+    <string name="app_update_checking">Checking for updates…</string>
+    <string name="app_update_up_to_date">You have the latest version (v%s)</string>
+    <string name="app_update_download_started">Downloading v%s. A notification will offer to install it.</string>
+    <string name="app_update_already_downloading">The update is already downloading</string>
+    <string name="app_update_check_failed">Couldn\'t check for updates. Try again later.</string>
+    <string name="app_update_notifications_off">Notifications are off for Novel Library, so the update can\'t be downloaded and installed from here. Download it in your browser instead?</string>
+    <string name="app_update_download_in_browser">Download</string>
 
     <string name="forced_webview_domains">Forced WebView Domains</string>
     <string name="forced_webview_domains_description">Domains that fell back to in-app browser fetching. Toggle off to retry the API path.</string>
