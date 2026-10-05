@@ -12,8 +12,10 @@
     tools:targetApi="m">
 
     <RelativeLayout
+        android:id="@+id/novelItemLayout"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="wrap_content"
+        android:minHeight="60dp"
         android:background="@drawable/corner_radius_novel_item"
         android:padding="4dp">
 
@@ -112,8 +114,7 @@
             <TextView
                 android:id="@+id/lastOpenedDate"
                 android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginTop="-2dp"
+                android:layout_height="wrap_content"
                 android:layout_weight="1"
                 android:gravity="center_vertical|start"
                 android:lines="2"
@@ -159,7 +160,9 @@
     <View
         android:id="@+id/blackOverlay"
         android:layout_width="match_parent"
-        android:layout_height="60dp"
+        android:layout_height="0dp"
+        android:layout_alignTop="@id/novelItemLayout"
+        android:layout_alignBottom="@id/novelItemLayout"
         android:background="@color/black_overlay_dark"
         android:visibility="invisible" />
 

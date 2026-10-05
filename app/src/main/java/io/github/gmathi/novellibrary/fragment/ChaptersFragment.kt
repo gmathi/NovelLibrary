@@ -78,7 +78,12 @@ class ChaptersFragment : BaseFragment(),
         binding.recyclerView.isVerticalScrollBarEnabled = true
         binding.recyclerView.setDefaultsNoAnimation(adapter)
         this.context?.let { binding.recyclerView.addItemDecoration(CustomDividerItemDecoration(it, DividerItemDecoration.VERTICAL)) }
-        binding.swipeRefreshLayout.isEnabled = false
+        // Pull-to-refresh does the same as the toolbar sync button. The activity shows its own
+        // loading state while chapters are re-fetched, so the spinner is released right away.
+        binding.swipeRefreshLayout.setOnRefreshListener {
+            binding.swipeRefreshLayout.isRefreshing = false
+            (activity as? ChaptersPagerActivity)?.syncChapters()
+        }
     }
 
     private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {

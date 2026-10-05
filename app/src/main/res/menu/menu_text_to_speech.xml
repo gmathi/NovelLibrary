@@ -9,6 +9,12 @@
         android:titleCondensed="@string/open_reader"
         app:showAsAction="ifRoom|withText" />
     <item
+        android:id="@+id/action_stop"
+        android:icon="@drawable/ic_stop_white_vector"
+        android:title="@string/stop"
+        android:titleCondensed="@string/stop"
+        app:showAsAction="always|withText" />
+    <item
         android:id="@+id/action_open_settings"
         android:icon="@drawable/ic_settings_white_vector"
         android:title="@string/open_settings"

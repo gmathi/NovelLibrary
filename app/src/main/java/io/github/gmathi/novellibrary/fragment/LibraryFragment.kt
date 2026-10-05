@@ -125,7 +125,16 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
         touchHelper.attachToRecyclerView(binding.recyclerView)
         binding.recyclerView.setDefaults(adapter)
         binding.swipeRefreshLayout.setOnRefreshListener {
-            setData()
+            // Pull-to-refresh does the same as the toolbar sync button: check every novel for new
+            // chapters. Previously it only re-read the list from the database, which looked like
+            // nothing happened. The sync reports progress in its own snackbar, so drop the spinner.
+            binding.swipeRefreshLayout.isRefreshing = false
+            if (networkHelper.isConnectedToNetwork()) {
+                syncNovels()
+            } else {
+                showAlertDialog(message = getString(R.string.no_internet))
+                setData()
+            }
         }
     }
 

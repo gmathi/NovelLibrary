@@ -546,6 +546,12 @@ class TextToSpeechControlsActivity : BaseActivity(), GenericAdapter.Listener<Str
                 openReader()
             }
 
+            R.id.action_stop -> {
+                // Ends playback and tears down the TTS service (notification included).
+                controller?.transportControls?.stop()
+                finish()
+            }
+
             R.id.action_open_settings -> {
                 binding.root.openDrawer(binding.quickSettings)
                 //startTTSSettingsActivity()
