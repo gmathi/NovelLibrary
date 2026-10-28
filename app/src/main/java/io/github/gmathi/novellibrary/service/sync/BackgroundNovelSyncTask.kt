@@ -27,7 +27,11 @@ import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.launchUI
+import io.github.gmathi.novellibrary.util.lang.DomainThrottle
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
@@ -62,21 +66,35 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
             val sourceManager = withContext(Dispatchers.IO) { SourceManager(context) }
             val novels = dbHelper.getAllNovels()
-            novels.forEach { novel ->
-                try {
-                    val newChaptersList = withContext(Dispatchers.IO) { sourceManager.get(novel.sourceId)?.getChapterList(novel) } ?: ArrayList()
-                    var currentChaptersHashCode = (novel.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
-                    if (currentChaptersHashCode == 0)
-                        currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
-                    val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
-                    if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
-                        novel.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
-                        totalCountMap[novel] = newChaptersList.size
-                        totalChaptersMap[novel] = ArrayList(newChaptersList)
+            // Fetch concurrently across domains, throttled per-domain so a single host is not hammered.
+            val throttle = DomainThrottle()
+            val syncedMaps = java.util.Collections.synchronizedList(ArrayList<Triple<Novel, Int, ArrayList<WebPage>>>())
+            coroutineScope {
+                novels.map { novel ->
+                    async(Dispatchers.IO) {
+                        try {
+                            val newChaptersList = throttle.withDomainPermit(novel.url) {
+                                sourceManager.get(novel.sourceId)?.getChapterList(novel)
+                            } ?: ArrayList()
+                            var currentChaptersHashCode = (novel.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
+                            if (currentChaptersHashCode == 0)
+                                currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
+                            val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
+                            if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
+                                novel.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
+                                syncedMaps.add(Triple(novel, newChaptersList.size, ArrayList(newChaptersList)))
+                            }
+                        } catch (e: Exception) {
+                            Logs.error(TAG, "Novel: $novel", e)
+                        }
                     }
-                } catch (e: Exception) {
-                    Logs.error(TAG, "Novel: $novel", e)
-                    return@forEach
+                }.awaitAll()
+            }
+
+            synchronized(syncedMaps) {
+                syncedMaps.forEach { (novel, count, chapters) ->
+                    totalCountMap[novel] = count
+                    totalChaptersMap[novel] = chapters
                 }
             }
 

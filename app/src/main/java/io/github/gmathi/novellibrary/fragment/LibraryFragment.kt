@@ -40,6 +40,7 @@ import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
+import io.github.gmathi.novellibrary.util.lang.DomainThrottle
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -432,9 +433,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             if (activity == null) return@syncing
             snackBarView(SnackBarStatus.Initialize, message = getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
 
-            var counter = 0
+            val counter = java.util.concurrent.atomic.AtomicInteger(0)
             val waitList = LinkedList<Deferred<Boolean>>()
-            val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
+            // Fetches run concurrently across domains but are throttled per-domain so a single host
+            // is not hammered; totalChaptersMap is written from multiple coroutines, so synchronize it.
+            val throttle = DomainThrottle()
+            val totalChaptersMap: MutableMap<Novel, ArrayList<WebPage>> = java.util.Collections.synchronizedMap(HashMap())
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
             snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.count())
 
@@ -442,12 +446,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 waitList.add(async {
                     try {
 
-                        val newChaptersList = withContext(Dispatchers.IO) {
-                            val source = sourceManager.get(it.sourceId)
-                            if (source is NovelUpdatesSource)
-                                source.getUnsortedChapterList(it)
-                            else
-                                source?.getChapterList(it)
+                        val newChaptersList = throttle.withDomainPermit(it.url) {
+                            withContext(Dispatchers.IO) {
+                                val source = sourceManager.get(it.sourceId)
+                                if (source is NovelUpdatesSource)
+                                    source.getUnsortedChapterList(it)
+                                else
+                                    source?.getChapterList(it)
+                            }
                         } ?: ArrayList()
                         var currentChaptersHashCode = (it.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
                         if (currentChaptersHashCode == 0)
@@ -458,8 +464,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             totalChaptersMap[it] = ArrayList(newChaptersList)
                         }
 
-                        val message = getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - counter++))
-                        snackBarView(SnackBarStatus.Update, message = message, progress = counter)
+                        val done = counter.incrementAndGet()
+                        val message = getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - done))
+                        snackBarView(SnackBarStatus.Update, message = message, progress = done)
 
                     } catch (e: Exception) {
                         Logs.error(TAG, "Novel: $it", e)
@@ -472,16 +479,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             //Update DB with new chapters
             waitList.clear()
-            counter = 0
+            counter.set(0)
             snackBarView(SnackBarStatus.MaxProgress, maxProgress = totalChaptersMap.count())
 
-            totalChaptersMap.forEach {
+            // Snapshot entries for safe iteration of the synchronized map.
+            val chapterEntries = synchronized(totalChaptersMap) { totalChaptersMap.entries.toList() }
+            chapterEntries.forEach {
                 val novelToUpdate = it.key
                 var chapters = it.value
-                counter++
+                val position = counter.incrementAndGet()
 
-                val message = getString(R.string.sync_fetching_chapter_list, counter, totalChaptersMap.count(), novelToUpdate.name)
-                snackBarView(SnackBarStatus.Update, message = message, progress = counter)
+                val message = getString(R.string.sync_fetching_chapter_list, position, chapterEntries.count(), novelToUpdate.name)
+                snackBarView(SnackBarStatus.Update, message = message, progress = position)
 
                 // We re-fetch the chapters in-case of NovelUpdates so that we also retrieve the translator information.
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
