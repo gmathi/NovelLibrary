@@ -11,6 +11,7 @@ import android.widget.Toast
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.online.HttpSource
+import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.NetworkHelper
 import io.github.gmathi.novellibrary.util.lang.launchUI
 import io.github.gmathi.novellibrary.util.system.toast
@@ -72,7 +73,7 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         run {
             val forcedPath = originalRequest.url.encodedPath.lowercase()
             val forcedIsResource = RESOURCE_EXTENSIONS.any { forcedPath.endsWith(it) }
-            if (!forcedIsResource && dataCenter.isWebViewForced(host)) {
+            if (!forcedIsResource && (isAlwaysWebViewHost(host) || dataCenter.isWebViewForced(host))) {
                 Log.d(TAG, "Host $host is forced to WebView fetcher; skipping API path")
                 CloudflareProgress.post("Using in-app browser fetch for $host…")
                 return runWebViewFetch(originalRequest, host)
@@ -241,6 +242,17 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
         Log.d(TAG, "isCloudflareChallenge: CF-RAY=$cfRay, CF-Cache-Status=$cfCacheStatus")
         
         return cfRay != null || cfCacheStatus != null
+    }
+
+    /**
+     * Whether [host] is permanently served via the WebView fetcher regardless of the
+     * forced-WebView self-heal flag. Used for domains whose plain API path is reliably
+     * blocked by a JS-required anti-bot measure (e.g. RoyalRoad), so the in-app browser
+     * engine is always used. Matches the exact host or any subdomain of it.
+     */
+    private fun isAlwaysWebViewHost(host: String): Boolean {
+        val h = host.lowercase()
+        return ALWAYS_WEBVIEW_HOSTS.any { h == it || h.endsWith(".$it") }
     }
 
     /**
@@ -445,6 +457,17 @@ class CloudflareInterceptor(private val context: Context) : Interceptor {
     companion object {
         private const val TAG = "CloudflareInterceptor"
         private val SERVER_CHECK = arrayOf("cloudflare-nginx", "cloudflare", "cf-ray")
+
+        /**
+         * Hosts permanently served via the WebView fetcher. RoyalRoad rolled out a
+         * JS-required anti-bot measure that blocks the plain OkHttp GET (the chapter-list
+         * page comes back as an interstitial / 403), so route it through the in-app browser
+         * engine, which executes the verification JS exactly as a real browser would.
+         */
+        private val ALWAYS_WEBVIEW_HOSTS = listOf(
+            HostNames.ROYAL_ROAD,
+            HostNames.ROYAL_ROAD_OLD
+        )
         private val COOKIE_NAMES = listOf("cf_clearance", "__cf_bm", "cf_chl_2", "cf_chl_prog")
         private val CLOUDFLARE_ERROR_CODES = setOf(503, 403, 429)
         private val RESOURCE_EXTENSIONS = arrayOf(
