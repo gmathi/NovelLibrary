@@ -221,12 +221,14 @@ class ReaderDBPagerActivity :
         if (menuIconVisible.value) {
             menuIconAutoHideHandler.postDelayed(menuIconAutoHideRunnable, MENU_ICON_AUTO_HIDE_MS)
         }
+        applyImmersiveForOverlay(overlayVisible.value)
     }
 
     fun showOverlay() {
         overlayVisible.value = true
         menuIconVisible.value = false // Hide icon when overlay is shown
         menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
+        applyImmersiveForOverlay(true)
     }
 
     fun hideOverlay() {
@@ -235,6 +237,20 @@ class ReaderDBPagerActivity :
         // Auto-hide the revealed icon after a few seconds.
         menuIconAutoHideHandler.removeCallbacks(menuIconAutoHideRunnable)
         menuIconAutoHideHandler.postDelayed(menuIconAutoHideRunnable, MENU_ICON_AUTO_HIDE_MS)
+        applyImmersiveForOverlay(false)
+    }
+
+    /**
+     * Keep the system bars in sync with the reader menu. When the menu opens we leave
+     * immersive fullscreen so the status/navigation bars are visible alongside the reader
+     * bars; when it closes we restore immersive mode if the preference is enabled.
+     */
+    @Suppress("DEPRECATION")
+    private fun applyImmersiveForOverlay(overlayOpen: Boolean) {
+        if (!dataCenter.enableImmersiveMode) return
+        window.decorView.systemUiVisibility =
+            if (overlayOpen) View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+            else Constants.IMMERSIVE_MODE_FLAGS
     }
 
     /** Show the floating menu icon (called from scroll listener on scroll down). */
@@ -263,7 +279,11 @@ class ReaderDBPagerActivity :
 
         if (hasFocus && dataCenter.enableImmersiveMode) {
             binding.mainContent.fitsSystemWindows = false
-            window.decorView.systemUiVisibility = Constants.IMMERSIVE_MODE_FLAGS
+            // Don't force immersive back on while the reader menu is open — keep the system
+            // bars visible alongside the reader bars until the menu is dismissed.
+            window.decorView.systemUiVisibility =
+                if (overlayVisible.value) View.SYSTEM_UI_FLAG_LAYOUT_STABLE
+                else Constants.IMMERSIVE_MODE_FLAGS
         }
     }
 

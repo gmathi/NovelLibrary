@@ -58,11 +58,12 @@ fun ReaderOverlay(
                 )
             }
 
-            // Floating menu icon — shown only when the overlay is hidden.
-            // The "reader mode button" preference enables the feature; when enabled
-            // the icon auto-hides on scroll down and reappears on scroll up / tap.
+            // Floating menu icon — hidden for now; the reader menu is opened by tapping
+            // anywhere in the reading area (see WebPageDBFragment.setupTapToToggleMenu).
+            // Kept in the tree (visible=false) so the preference/scroll wiring stays intact
+            // and the button can be restored later without re-adding the composable.
             AnimatedVisibility(
-                visible = !isVisible && uiState.isReaderModeButtonVisible && isMenuIconVisible,
+                visible = false,
                 enter = fadeIn(),
                 exit = fadeOut(),
                 modifier = Modifier
