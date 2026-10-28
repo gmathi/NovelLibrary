@@ -39,6 +39,38 @@ object Changelog {
     val versions: List<ChangelogVersion> = listOf(
 
         ChangelogVersion(
+            version = "2.4.1",
+            date = "Oct 2026",
+            headline = "Storage-migration and backup data-safety fixes, plus a font-picker crash fix.",
+            changes = listOf(
+                ChangelogChange(
+                    emoji = "🗂️",
+                    title = "Storage migration only moves your novels",
+                    detail = "Switching the download location no longer relocates and deletes " +
+                        "non-novel folders (voice models, app data) that sit beside your novel " +
+                        "downloads. Folders that aren't novels are now left in place, and the " +
+                        "result tells you how many were skipped.",
+                    major = true,
+                ),
+                ChangelogChange(
+                    emoji = "💾",
+                    title = "Backups include downloaded chapters from the SD card",
+                    detail = "A 'backup with chapters' now reads from your active download " +
+                        "location, so moving downloads to the SD card no longer silently leaves " +
+                        "the chapters out of the backup.",
+                    major = true,
+                ),
+                ChangelogChange(
+                    emoji = "🔤",
+                    title = "Font picker no longer crashes on a missing font",
+                    detail = "A per-novel font whose file was removed or lives on unavailable " +
+                        "storage now falls back to the default instead of crashing the font " +
+                        "dialog.",
+                ),
+            ),
+        ),
+
+        ChangelogVersion(
             version = "2.4.0",
             date = "Oct 2026",
             headline = "Offline reading that stays put, a tap-to-open reader, and reliable RoyalRoad loading.",
