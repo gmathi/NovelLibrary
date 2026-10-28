@@ -44,6 +44,7 @@ import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_LENGTH_STEP
+import io.github.gmathi.novellibrary.util.Constants.VOLUME_SCROLL_BOTTOM_THRESHOLD
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.Utils.getFormattedText
 import io.github.gmathi.novellibrary.util.analytics.FAC
@@ -343,27 +344,57 @@ class ReaderDBPagerActivity :
         return when (keyCode) {
             KeyEvent.KEYCODE_VOLUME_UP -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
-                    val anim = ObjectAnimator.ofInt(
-                        webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) - dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
-                    )
-                    anim.setDuration(500).start()
+                    if (isScrolledToTop(webView)) {
+                        goToAdjacentChapter(previous = true)
+                    } else {
+                        val anim = ObjectAnimator.ofInt(
+                            webView, "scrollY", webView?.scrollY
+                                ?: 0, (webView?.scrollY ?: 0) - dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
+                        )
+                        anim.setDuration(500).start()
+                    }
                 }
                 dataCenter.enableVolumeScroll
             }
 
             KeyEvent.KEYCODE_VOLUME_DOWN -> {
                 if (action == KeyEvent.ACTION_DOWN && dataCenter.enableVolumeScroll) {
-                    val anim = ObjectAnimator.ofInt(
-                        webView, "scrollY", webView?.scrollY
-                            ?: 0, (webView?.scrollY ?: 0) + dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
-                    )
-                    anim.setDuration(500).start()
+                    if (isScrolledToBottom(webView)) {
+                        goToAdjacentChapter(previous = false)
+                    } else {
+                        val anim = ObjectAnimator.ofInt(
+                            webView, "scrollY", webView?.scrollY
+                                ?: 0, (webView?.scrollY ?: 0) + dataCenter.volumeScrollLength * VOLUME_SCROLL_LENGTH_STEP
+                        )
+                        anim.setDuration(500).start()
+                    }
                 }
                 dataCenter.enableVolumeScroll
             }
 
             else -> super.dispatchKeyEvent(event)
+        }
+    }
+
+    private fun isScrolledToTop(webView: WebView?): Boolean {
+        webView ?: return false
+        return webView.scrollY <= 0
+    }
+
+    private fun isScrolledToBottom(webView: WebView?): Boolean {
+        webView ?: return false
+        val maxScroll = webView.contentHeight * webView.scale - webView.height
+        return maxScroll <= 0 || webView.scrollY >= maxScroll - VOLUME_SCROLL_BOTTOM_THRESHOLD
+    }
+
+    /** Switch to the previous/next chapter page. Matches the overlay chapter buttons;
+     *  ViewPager indices already account for [DataCenter.japSwipe] (the list is reversed on load). */
+    private fun goToAdjacentChapter(previous: Boolean) {
+        val current = binding.viewPager.currentItem
+        if (previous) {
+            if (current > 0) binding.viewPager.currentItem = current - 1
+        } else {
+            if (current < webPages.size - 1) binding.viewPager.currentItem = current + 1
         }
     }
 
