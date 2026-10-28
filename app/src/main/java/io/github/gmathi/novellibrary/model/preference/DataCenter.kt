@@ -476,9 +476,21 @@ class DataCenter(context: Context) {
     /**
      * Returns the font-path preference for the novel identified by [novelId]. Falls back to
      * the app-wide default ([fontPath]) when no per-novel value has been stored yet.
+     *
+     * A stored per-novel path is validated the same way [fontPath] validates the app-wide value:
+     * a bundled asset path is trusted, but a filesystem path is only returned when the file still
+     * exists. When the file was removed or its storage is unavailable the stale entry is cleared
+     * and the app-wide default returned, so the font dialog never tries to load a missing file
+     * (#279).
      */
-    fun getFontPathForNovel(novelId: Long): String =
-        prefs.getString(FONT_PATH_PER_NOVEL_PREFIX + novelId, null) ?: fontPath
+    fun getFontPathForNovel(novelId: Long): String {
+        val stored = prefs.getString(FONT_PATH_PER_NOVEL_PREFIX + novelId, null) ?: return fontPath
+        if (!stored.startsWith("/android_asset/fonts/") && !File(stored).exists()) {
+            prefs.edit().remove(FONT_PATH_PER_NOVEL_PREFIX + novelId).apply()
+            return fontPath
+        }
+        return stored
+    }
 
     /**
      * Persists the font-path preference for the novel identified by [novelId]. Does not
