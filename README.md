@@ -20,18 +20,25 @@ Your one-stop Android app for reading web novels from multiple sources with offl
 - Dark theme support
 - Multi-language support
 
-## Screenshots
+## How to help with this project?
 
-[Add screenshots here to showcase the app]
+Contributions of all kinds are welcome:
 
-## Getting Started
+- **Report bugs** or request features on [GitHub Issues](https://github.com/gmathi/NovelLibrary/issues)
+- **Fix bugs or add features** by opening a Pull Request (see [Contributing](#contributing))
+- **Add or maintain novel sources** in the [extensions repository](https://github.com/gmathi/NovelLibrary-Extensions)
+- **Improve translations** — the app ships multi-language `strings.xml` resources
+- **Help others** and discuss ideas on our [Discord server](https://discord.gg/qFZX4vdEdF)
+
+## Getting Started with Development
 
 ### Prerequisites
 
-- Android Studio Arctic Fox or later
+- Android Studio (latest stable; AGP 9.2.0)
 - JDK 17
-- Android SDK with API 35
-- Kotlin 2.0.21 or later
+- Android SDK with API 36 (compileSdk/targetSdk 36, minSdk 26)
+- Android Build Tools 36.0.0
+- Kotlin 2.3.10
 
 ### Required Configuration Files
 
@@ -87,15 +94,18 @@ Extensions Repository: https://github.com/gmathi/NovelLibrary-Extensions
 
 ## Tech Stack
 
-- Kotlin
+- Kotlin (Coroutines, Serialization)
+- Jetpack Compose (Material3) alongside View-based UI (ViewBinding/DataBinding)
 - Android Jetpack (ViewModel, LiveData, WorkManager, Room)
-- Firebase (Auth, Messaging, Crashlytics, Remote Config)
+- Firebase (Auth, Messaging, Crashlytics, Remote Config, Analytics)
 - Retrofit + OkHttp for networking
 - Glide & Coil for image loading
 - Jsoup for HTML parsing
 - RxJava for reactive programming
-- Kotlin Coroutines
+- Sherpa-ONNX for on-device Text-to-Speech
+- AndroidX Media for TTS media session/notification controls
 - Material Design Components
+- KSP for annotation processing (Room, Glide)
 
 ## Architecture
 
