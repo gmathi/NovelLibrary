@@ -4,7 +4,7 @@ Your one-stop Android app for reading web novels from multiple sources with offl
 
 | Version | Support Server |
 |---------|----------------|
-| 1.1.0 | [![Discord](https://img.shields.io/discord/339610451711361024.svg?label=discord&labelColor=7289da&color=00aa39&style=flat)](https://discord.gg/qFZX4vdEdF) |
+| 2.4.0 | [![Discord](https://img.shields.io/discord/339610451711361024.svg?label=discord&labelColor=7289da&color=00aa39&style=flat)](https://discord.gg/qFZX4vdEdF) |
 
 ## Features
 

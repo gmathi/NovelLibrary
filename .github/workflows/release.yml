@@ -75,6 +75,31 @@ jobs:
           cp app/build/outputs/apk/normal/release/*.apk release-apks/ 2>/dev/null || true
           ls -la release-apks/
 
+      - name: Update README version
+        run: |
+          # Version from the tag, with any leading "v" stripped (v2.4.0 -> 2.4.0).
+          VERSION="${{ github.event.inputs.tag }}"
+          VERSION="${VERSION#v}"
+          # Rewrite the first table cell on the data row under the Version header.
+          # Anchored on the "[![Discord]" badge so it only ever matches that one row,
+          # never the "| Version |" header or the "|----|" separator.
+          perl -0pi -e "s/\|\s*[^|]*?\s*\|(\s*\[!\[Discord\])/| ${VERSION} |\$1/" README.md
+          # Fail loudly if the version cell is not now exactly the release version —
+          # a silent no-match must not be mistaken for "already up to date".
+          if ! grep -qE "^\|\s*${VERSION}\s*\|\s*\[!\[Discord\]" README.md; then
+            echo "::error::README version cell was not updated to ${VERSION}. Check the Version table format in README.md."
+            exit 1
+          fi
+          if git diff --quiet README.md; then
+            echo "README version already up to date ($VERSION)."
+          else
+            git config user.name  "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add README.md
+            git commit -m "Update README version to ${VERSION}"
+            git push origin HEAD:${{ github.event.inputs.ref }}
+          fi
+
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
         with:
