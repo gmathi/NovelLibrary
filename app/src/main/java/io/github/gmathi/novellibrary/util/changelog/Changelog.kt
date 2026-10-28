@@ -39,6 +39,69 @@ object Changelog {
     val versions: List<ChangelogVersion> = listOf(
 
         ChangelogVersion(
+            version = "2.4.0",
+            date = "Oct 2026",
+            headline = "Offline reading that stays put, a tap-to-open reader, and reliable RoyalRoad loading.",
+            changes = listOf(
+                ChangelogChange(
+                    emoji = "📶",
+                    title = "Downloaded chapters stay visible offline",
+                    detail = "Opening a novel with no connection no longer hides your list. " +
+                        "Downloaded chapters are served straight from the device, and the app " +
+                        "falls back to them if a refresh can't reach the network — so your " +
+                        "offline library is always there.",
+                    major = true,
+                ),
+                ChangelogChange(
+                    emoji = "👆",
+                    title = "Tap the screen to open the reader menu",
+                    detail = "Tap anywhere in the reading area to toggle the reader menu — no more " +
+                        "hunting for the floating button (now hidden). Taps on links, images and " +
+                        "text selection keep working as before, and the system bars reveal " +
+                        "alongside the reader bars.",
+                    major = true,
+                ),
+                ChangelogChange(
+                    emoji = "🛡️",
+                    title = "RoyalRoad loads reliably again",
+                    detail = "RoyalRoad's new JavaScript anti-bot check broke chapter loading. " +
+                        "RoyalRoad now always routes through the in-app browser fetcher, which " +
+                        "runs the verification like a real browser, so chapters load again.",
+                ),
+                ChangelogChange(
+                    emoji = "📱",
+                    title = "App icon resumes where you left off",
+                    detail = "Tapping the app icon now returns to whatever you had open (such as the " +
+                        "reader) instead of dropping you back on the main screen.",
+                ),
+                ChangelogChange(
+                    emoji = "🔊",
+                    title = "Cleaner TTS notification behaviour",
+                    detail = "Tapping the text-to-speech notification no longer stacks duplicate " +
+                        "reader and controls screens — it reuses the one already open.",
+                ),
+                ChangelogChange(
+                    emoji = "🗓️",
+                    title = "Accurate \"Last Updated\" after a refresh",
+                    detail = "Refreshing a single novel now updates its Last Updated date, matching " +
+                        "the behaviour of a full category sync.",
+                ),
+                ChangelogChange(
+                    emoji = "🐛",
+                    title = "Fewer false error reports",
+                    detail = "Cancelling a fetch (for example during Cloudflare verification or a " +
+                        "screen rotation) no longer shows a spurious error prompting you to report " +
+                        "a non-bug.",
+                ),
+                ChangelogChange(
+                    emoji = "📜",
+                    title = "Chapter-list scrollbar restored",
+                    detail = "The vertical scrollbar is back in the chapter list.",
+                ),
+            ),
+        ),
+
+        ChangelogVersion(
             version = "2.3.0",
             date = "Oct 2026",
             headline = "A rebuilt Settings experience and smarter, hands-off Cloudflare handling.",
