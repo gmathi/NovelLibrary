@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
+import kotlin.coroutines.cancellation.CancellationException
 import kotlinx.coroutines.withContext
 import io.github.gmathi.novellibrary.BuildConfig
 import uy.kohesive.injekt.injectLazy
@@ -166,6 +167,7 @@ class SearchTermViewModel : ViewModel() {
                     )
                 }
             } catch (e: Exception) {
+                if (e is CancellationException) throw e
                 updateSourceState(index) { state ->
                     if (page == 1) {
                         val isCloudflare = e.localizedMessage?.contains("503") == true ||

@@ -5,7 +5,9 @@ import android.graphics.Color
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.view.GestureDetector
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
@@ -241,6 +243,39 @@ class WebPageDBFragment : BaseFragment() {
         }
         //readerWebView.setOnScrollChangeListener { webView, i, i, i, i ->  }
         changeTextSize()
+        setupTapToToggleMenu()
+    }
+
+    /**
+     * Tap anywhere in the reading area to toggle the reader menu overlay, so the menu is
+     * reachable without the floating hamburger button. A single tap that does NOT land on a
+     * link, image or editable element toggles the overlay; taps on links/images fall through
+     * to the WebView so navigation and image handling still work. The listener only OBSERVES
+     * the touch stream (returns false), leaving scrolling, flinging and text selection intact.
+     */
+    @SuppressLint("ClickableViewAccessibility")
+    private fun setupTapToToggleMenu() {
+        val gestureDetector = GestureDetector(
+            binding.readerWebView.context,
+            object : GestureDetector.SimpleOnGestureListener() {
+                override fun onSingleTapUp(e: MotionEvent): Boolean {
+                    val activity = activity as? ReaderDBPagerActivity ?: return false
+                    val hitType = binding.readerWebView.hitTestResult.type
+                    val isLink = hitType == WebView.HitTestResult.SRC_ANCHOR_TYPE ||
+                            hitType == WebView.HitTestResult.SRC_IMAGE_ANCHOR_TYPE ||
+                            hitType == WebView.HitTestResult.IMAGE_TYPE ||
+                            hitType == WebView.HitTestResult.EDIT_TEXT_TYPE
+                    // Only toggle on empty-area taps; let link/image taps reach the WebView.
+                    if (!isLink) activity.toggleOverlay()
+                    return false
+                }
+            }
+        )
+        binding.readerWebView.setOnTouchListener { _, event ->
+            gestureDetector.onTouchEvent(event)
+            // Never consume — the WebView still scrolls, selects text and follows links.
+            false
+        }
     }
 
     private fun loadData(liveFromWeb: Boolean = false) {

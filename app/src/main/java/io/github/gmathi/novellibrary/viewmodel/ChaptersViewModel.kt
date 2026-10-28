@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.lang.ref.WeakReference
@@ -151,11 +152,19 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
             this@ChaptersViewModel.chapterSettings = null
         }
 
+        // Cached chapters already persisted locally (includes any downloaded chapters).
+        // Kept across the network path so we can fall back to them when offline or a
+        // fetch fails, instead of leaving the list null and hiding downloaded chapters.
+        var cachedChapters: List<WebPage>? = null
+        var cachedChapterSettings: List<WebPageSettings>? = null
+
         try {
             if (!forceUpdate && novel.id != -1L) {
                 loadingStatus.postValue("Checking Cache…")
                 val chapters = dbHelper.getAllWebPages(novel.id)
                 val chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
+                cachedChapters = chapters
+                cachedChapterSettings = chapterSettings
 
                 if (chapters.isEmpty() || chapters.size < novel.chaptersCount.toInt()) {
                     novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
@@ -165,6 +174,14 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
                     this@ChaptersViewModel.chapterSettings = chapterSettings
                     return@withContext
                 }
+            }
+
+            // Offline with cached chapters: serve them directly rather than attempting a
+            // doomed network fetch that would clear the list and show NO_INTERNET.
+            if (!networkHelper.isConnectedToNetwork() && !cachedChapters.isNullOrEmpty()) {
+                this@ChaptersViewModel.chapters = ArrayList(cachedChapters)
+                this@ChaptersViewModel.chapterSettings = cachedChapterSettings?.let { ArrayList(it) }
+                return@withContext
             }
 
             if (showSources)
@@ -191,12 +208,25 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
             return@withContext
 
         } catch (e: Exception) {
+            // Coroutine cancellation (e.g. the resolver Activity returns and getData relaunches,
+            // or the screen is recreated mid-challenge) is cooperative, NOT a fetch failure.
+            // Rethrow it so structured concurrency unwinds normally instead of surfacing
+            // "StandaloneCoroutine was cancelled" to the user as a reportable error.
+            if (e is CancellationException) throw e
             Logs.error(TAG, "getChapters - isRemote:$forceUpdate", e)
             // A Cloudflare challenge on the chapter fetch (403 / bypass-failed) should surface
             // to the user as the interactive resolver rather than a generic network error.
             val gated = CloudflareInterceptor.extractGatedUrl(e)
             if (gated != null || (e.message?.contains("cloudflare", ignoreCase = true) == true)) {
                 cloudflareGatedUrl = gated ?: novel.url
+            }
+            // Network/login fetch failed but we have locally cached chapters (incl. downloaded
+            // ones): show them instead of leaving the list null and hiding offline-readable
+            // content. Does not clobber an already-populated list or the Cloudflare handoff.
+            if (this@ChaptersViewModel.chapters == null && cloudflareGatedUrl == null &&
+                nuLoginRequest == null && !cachedChapters.isNullOrEmpty()) {
+                this@ChaptersViewModel.chapters = ArrayList(cachedChapters)
+                this@ChaptersViewModel.chapterSettings = cachedChapterSettings?.let { ArrayList(it) }
             }
         }
     }
@@ -222,6 +252,11 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
 
             val chaptersHash = chaptersList.sumBy { it.hashCode() }
             novel.metadata[Constants.MetaDataKeys.HASH_CODE] = chaptersHash.toString()
+            // Stamp the refresh time on the successful persist so the library's "Last Updated"
+            // reflects a per-novel chapter refresh — matching the batch sync path. Previously
+            // this was only written in getChapters' stale-cache branch, so refreshing a novel
+            // whose count already matched left the date untouched.
+            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
             dbHelper.updateNovelMetaData(novel)
 
             for (i in 0 until chaptersCount) {

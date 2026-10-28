@@ -95,7 +95,7 @@
         <activity
             android:name=".activity.NavDrawerActivity"
             android:label="@string/title_activity_nav_drawer"
-            android:launchMode="singleTask"
+            android:launchMode="singleTop"
             android:screenOrientation="fullUser"
             android:exported="true"
             android:theme="@style/DarkTheme_DarkSide">
