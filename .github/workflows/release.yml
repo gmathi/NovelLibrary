@@ -81,7 +81,7 @@ jobs:
           tag_name: ${{ github.event.inputs.tag }}
           name: ${{ github.event.inputs.tag }}
           target_commitish: ${{ github.event.inputs.ref }}
-          generate_release_notes: true
+          body_path: .github/RELEASE_NOTES.md
           draft: false
           prerelease: false
           files: release-apks/*.apk
