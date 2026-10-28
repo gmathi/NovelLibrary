@@ -151,11 +151,19 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
             this@ChaptersViewModel.chapterSettings = null
         }
 
+        // Cached chapters already persisted locally (includes any downloaded chapters).
+        // Kept across the network path so we can fall back to them when offline or a
+        // fetch fails, instead of leaving the list null and hiding downloaded chapters.
+        var cachedChapters: List<WebPage>? = null
+        var cachedChapterSettings: List<WebPageSettings>? = null
+
         try {
             if (!forceUpdate && novel.id != -1L) {
                 loadingStatus.postValue("Checking Cache…")
                 val chapters = dbHelper.getAllWebPages(novel.id)
                 val chapterSettings = dbHelper.getAllWebPageSettings(novel.id)
+                cachedChapters = chapters
+                cachedChapterSettings = chapterSettings
 
                 if (chapters.isEmpty() || chapters.size < novel.chaptersCount.toInt()) {
                     novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
@@ -165,6 +173,14 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
                     this@ChaptersViewModel.chapterSettings = chapterSettings
                     return@withContext
                 }
+            }
+
+            // Offline with cached chapters: serve them directly rather than attempting a
+            // doomed network fetch that would clear the list and show NO_INTERNET.
+            if (!networkHelper.isConnectedToNetwork() && !cachedChapters.isNullOrEmpty()) {
+                this@ChaptersViewModel.chapters = ArrayList(cachedChapters)
+                this@ChaptersViewModel.chapterSettings = cachedChapterSettings?.let { ArrayList(it) }
+                return@withContext
             }
 
             if (showSources)
@@ -197,6 +213,14 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
             val gated = CloudflareInterceptor.extractGatedUrl(e)
             if (gated != null || (e.message?.contains("cloudflare", ignoreCase = true) == true)) {
                 cloudflareGatedUrl = gated ?: novel.url
+            }
+            // Network/login fetch failed but we have locally cached chapters (incl. downloaded
+            // ones): show them instead of leaving the list null and hiding offline-readable
+            // content. Does not clobber an already-populated list or the Cloudflare handoff.
+            if (this@ChaptersViewModel.chapters == null && cloudflareGatedUrl == null &&
+                nuLoginRequest == null && !cachedChapters.isNullOrEmpty()) {
+                this@ChaptersViewModel.chapters = ArrayList(cachedChapters)
+                this@ChaptersViewModel.chapterSettings = cachedChapterSettings?.let { ArrayList(it) }
             }
         }
     }
