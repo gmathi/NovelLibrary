@@ -252,6 +252,11 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
 
             val chaptersHash = chaptersList.sumBy { it.hashCode() }
             novel.metadata[Constants.MetaDataKeys.HASH_CODE] = chaptersHash.toString()
+            // Stamp the refresh time on the successful persist so the library's "Last Updated"
+            // reflects a per-novel chapter refresh — matching the batch sync path. Previously
+            // this was only written in getChapters' stale-cache branch, so refreshing a novel
+            // whose count already matched left the date untouched.
+            novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
             dbHelper.updateNovelMetaData(novel)
 
             for (i in 0 until chaptersCount) {
