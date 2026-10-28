@@ -436,6 +436,7 @@
     <string name="storage_migration_success">Downloads moved to %1$s</string>
     <string name="storage_migration_insufficient_space">Not enough free space at the destination. Needed %1$s, only %2$s available.</string>
     <string name="storage_migration_partial_failure">Some files could not be moved (%1$d moved, %2$d failed). Unmoved chapters remain accessible at the previous location.</string>
+    <string name="storage_migration_skipped_note">\n\n%1$d non-novel folder(s) (e.g. voice models, app data) were left in place at the previous location and not moved.</string>
 
     <!-- v0.5 Strings -->
 

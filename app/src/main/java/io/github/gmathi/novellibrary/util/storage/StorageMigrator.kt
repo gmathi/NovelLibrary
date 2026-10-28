@@ -2,6 +2,7 @@ package io.github.gmathi.novellibrary.util.storage
 
 import android.content.Context
 import io.github.gmathi.novellibrary.database.DBHelper
+import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.database.getAllWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
 import io.github.gmathi.novellibrary.model.preference.DataCenter
@@ -26,14 +27,18 @@ class StorageMigrator(
 
     /** Outcome of a [migrate] call. */
     sealed class MigrationResult {
-        /** All Novel_Dirs were moved and every chapter path rewritten. */
-        data class Success(val movedNovels: Int, val movedFiles: Int) : MigrationResult()
+        /**
+         * All Novel_Dirs were moved and every chapter path rewritten. [skippedDirs] counts
+         * directories under the source root that did not resolve to a novel row and were therefore
+         * left untouched (e.g. AI TTS models, espeak data, legacy host-based folders).
+         */
+        data class Success(val movedNovels: Int, val movedFiles: Int, val skippedDirs: Int) : MigrationResult()
 
         /** The destination did not have enough free space; nothing was touched. */
         data class InsufficientSpace(val requiredBytes: Long, val availableBytes: Long) : MigrationResult()
 
         /** Migration was interrupted after some files were committed to the new location. */
-        data class PartialFailure(val movedFiles: Int, val failedFiles: Int) : MigrationResult()
+        data class PartialFailure(val movedFiles: Int, val failedFiles: Int, val skippedDirs: Int) : MigrationResult()
     }
 
     /**
@@ -48,13 +53,24 @@ class StorageMigrator(
         onProgress: (done: Int, total: Int) -> Unit = { _, _ -> }
     ): MigrationResult = withContext(Dispatchers.IO) {
         // Space precheck (Requirements 5.6, 6): touch nothing when there isn't enough room.
-        val required = estimateRequiredBytes(from.root)
+        val validNovelIds = dbHelper.getAllNovels().map { it.id }.toHashSet()
+        val required = estimateRequiredBytes(from.root, validNovelIds)
         val available = DiskUtil.getAvailableSpace(to.root)
         if (required > available) {
             return@withContext MigrationResult.InsufficientSpace(requiredBytes = required, availableBytes = available)
         }
 
-        val sourceNovelDirs = from.root.listFiles()?.filter { it.isDirectory } ?: emptyList()
+        // Only directories that resolve to a known novel row are migrated. Everything else under
+        // the source root (AI TTS models, espeak data, the shared images cache, and legacy
+        // host-based folders whose names don't parse to a novelId) is LEFT IN PLACE — moving it
+        // blind relocated 300+ MB of model data and deleted the source while the DB still pointed
+        // at the old path. See issues #275 and #276.
+        val allDirs = from.root.listFiles()?.filter { it.isDirectory } ?: emptyList()
+        val sourceNovelDirs = allDirs.filter { dir ->
+            val id = dir.name.substringAfterLast('-').toLongOrNull()
+            id != null && validNovelIds.contains(id)
+        }
+        val skippedDirs = allDirs.size - sourceNovelDirs.size
         val total = sourceNovelDirs.size
 
         var movedNovels = 0
@@ -67,7 +83,8 @@ class StorageMigrator(
             for (sourceNovelDir in sourceNovelDirs) {
                 try {
                     val destNovelDir = File(to.root, sourceNovelDir.name)
-                    val novelId = sourceNovelDir.name.substringAfterLast('-').toLongOrNull()
+                    // Guaranteed non-null: sourceNovelDirs only holds dirs that parsed to a valid id.
+                    val novelId = sourceNovelDir.name.substringAfterLast('-').toLong()
 
                     // Fast path: same-filesystem atomic rename.
                     val renamed = sourceNovelDir.renameTo(destNovelDir)
@@ -79,7 +96,7 @@ class StorageMigrator(
                     }
 
                     // Commit each affected chapter's file_path only after its destination file exists.
-                    if (novelId != null) {
+                    run {
                         val webPageSettingsList = dbHelper.getAllWebPageSettings(novelId)
                         for (webPageSettings in webPageSettingsList) {
                             val oldPath = webPageSettings.filePath ?: continue
@@ -119,15 +136,15 @@ class StorageMigrator(
         }
 
         if (interrupted) {
-            return@withContext MigrationResult.PartialFailure(movedFiles = movedFiles, failedFiles = failedFiles)
+            return@withContext MigrationResult.PartialFailure(movedFiles = movedFiles, failedFiles = failedFiles, skippedDirs = skippedDirs)
         }
 
         if (failedFiles > 0) {
-            return@withContext MigrationResult.PartialFailure(movedFiles = movedFiles, failedFiles = failedFiles)
+            return@withContext MigrationResult.PartialFailure(movedFiles = movedFiles, failedFiles = failedFiles, skippedDirs = skippedDirs)
         }
 
         StorageLocationResolver.setConfiguredLocation(dataCenter, to.location)
-        MigrationResult.Success(movedNovels = movedNovels, movedFiles = movedFiles)
+        MigrationResult.Success(movedNovels = movedNovels, movedFiles = movedFiles, skippedDirs = skippedDirs)
     }
 
     /** Recursively copies every file under [sourceDir] into [destDir], preserving relative structure. */
@@ -147,14 +164,19 @@ class StorageMigrator(
         }
     }
 
-    /** Bytes needed to move all current downloads from [from]. */
-    fun estimateRequiredBytes(from: File): Long {
+    /**
+     * Bytes needed to move all current downloads from [from]. Only directories that resolve to a
+     * known novel id in [validNovelIds] are counted, matching exactly what [migrate] relocates —
+     * so the precheck never demands headroom for bytes that will not move (e.g. AI TTS models).
+     */
+    fun estimateRequiredBytes(from: File, validNovelIds: Set<Long>): Long {
         val novelDirs = from.listFiles() ?: return 0L
         var total = 0L
         for (novelDir in novelDirs) {
-            if (novelDir.isDirectory) {
-                total += DiskUtil.getDirectorySize(novelDir)
-            }
+            if (!novelDir.isDirectory) continue
+            val id = novelDir.name.substringAfterLast('-').toLongOrNull()
+            if (id == null || !validNovelIds.contains(id)) continue
+            total += DiskUtil.getDirectorySize(novelDir)
         }
         return total
     }
