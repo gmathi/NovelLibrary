@@ -67,6 +67,7 @@ class DataCenter(context: Context) {
         private const val SHOW_READER_SCROLL = "showReaderScroll"
         private const val SHOW_CHAPTER_COMMENTS = "showChapterComments"
         private const val ENABLE_VOLUME_SCROLL = "volumeScroll"
+        private const val AUTO_DOWNLOAD_NEW_CHAPTERS = "autoDownloadNewChapters"
         private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
@@ -370,6 +371,11 @@ class DataCenter(context: Context) {
     var enableVolumeScroll: Boolean
         get() = prefs.getBoolean(ENABLE_VOLUME_SCROLL, true)
         set(value) = prefs.edit().putBoolean(ENABLE_VOLUME_SCROLL, value).apply()
+
+    /** Master switch for the per-novel "auto-download new chapters" behaviour. Off by default. */
+    var autoDownloadNewChapters: Boolean
+        get() = prefs.getBoolean(AUTO_DOWNLOAD_NEW_CHAPTERS, false)
+        set(value) = prefs.edit().putBoolean(AUTO_DOWNLOAD_NEW_CHAPTERS, value).apply()
 
     var volumeScrollLength: Int
         get() = prefs.getInt(SCROLL_LENGTH, Constants.VOLUME_SCROLL_LENGTH_DEFAULT)

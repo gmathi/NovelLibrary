@@ -48,6 +48,7 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
         private const val POSITION_AUTO_APP_UPDATE = 9
         private const val POSITION_DOWNLOAD_STORAGE = 10
         private const val POSITION_CLEAR_CLOUDFLARE_COOKIES = 11
+        private const val POSITION_AUTO_DOWNLOAD_NEW_CHAPTERS = 12
 
     }
 
@@ -159,6 +160,12 @@ class GeneralSettingsActivity : BaseActivity(), GenericAdapter.Listener<String> 
                 itemBinding.widgetSwitch.visibility = View.VISIBLE
                 itemBinding.widgetSwitch.isChecked = dataCenter.enableAutoAppUpdate
                 itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.enableAutoAppUpdate = value }
+            }
+
+            POSITION_AUTO_DOWNLOAD_NEW_CHAPTERS -> {
+                itemBinding.widgetSwitch.visibility = View.VISIBLE
+                itemBinding.widgetSwitch.isChecked = dataCenter.autoDownloadNewChapters
+                itemBinding.widgetSwitch.setOnCheckedChangeListener { _, value -> dataCenter.autoDownloadNewChapters = value }
             }
 
         }

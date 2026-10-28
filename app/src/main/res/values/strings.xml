@@ -119,6 +119,7 @@
         <item>@string/auto_app_update</item>
         <item>@string/download_storage_location</item>
         <item>@string/clear_cloudflare_cookies</item>
+        <item>@string/auto_download_new_chapters</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -135,6 +136,7 @@
         <item>@string/auto_app_update_description</item>
         <item>@string/download_storage_location_description</item>
         <item>@string/clear_cloudflare_cookies_description</item>
+        <item>@string/auto_download_new_chapters_description</item>
     </string-array>
 
     <string-array name="dns_over_https_list" translatable="false">
@@ -893,6 +895,13 @@
 
     <string name="auto_app_update">Auto App Update</string>
     <string name="auto_app_update_description">Automatically check for and download app updates on launch</string>
+
+    <string name="auto_download_new_chapters">Auto-Download New Chapters</string>
+    <string name="auto_download_new_chapters_description">When a library update finds new chapters, automatically queue them for download (only for novels you enable it on)</string>
+    <string name="auto_download_this_novel">Auto-download new chapters</string>
+    <string name="auto_download_enabled_toast">Auto-download enabled for this novel</string>
+    <string name="auto_download_disabled_toast">Auto-download disabled for this novel</string>
+    <string name="auto_download_needs_global_toast">Enable \"Auto-Download New Chapters\" in Settings to use this</string>
 
     <string name="night_mode">Night Mode</string>
     <string name="night_mode_description">Switch between day and night appearance for the app</string>

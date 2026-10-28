@@ -258,3 +258,12 @@ data class Novel(
 
 
 }
+
+/** Whether new chapters for this novel should be auto-queued for download on library update. */
+fun Novel.isAutoDownloadEnabled(): Boolean =
+    metadata[io.github.gmathi.novellibrary.util.Constants.MetaDataKeys.AUTO_DOWNLOAD] == "true"
+
+/** Set the per-novel auto-download opt-in flag in metadata (persist separately via DBHelper). */
+fun Novel.setAutoDownloadEnabled(enabled: Boolean) {
+    metadata[io.github.gmathi.novellibrary.util.Constants.MetaDataKeys.AUTO_DOWNLOAD] = enabled.toString()
+}

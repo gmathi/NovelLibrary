@@ -113,6 +113,7 @@ object Constants {
         const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
         const val IS_FAVORITE = "isFavorite"
         const val HASH_CODE = "hashCode"
+        const val AUTO_DOWNLOAD = "autoDownload"
     }
 
     object LargePreferenceKeys {

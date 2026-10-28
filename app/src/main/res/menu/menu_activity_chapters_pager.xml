@@ -32,4 +32,12 @@
         android:titleCondensed="@string/sort"
         app:showAsAction="ifRoom"/>
 
+    <item
+        android:id="@+id/action_auto_download"
+        android:checkable="true"
+        android:title="@string/auto_download_this_novel"
+        android:titleCondensed="@string/auto_download_this_novel"
+        android:visible="false"
+        app:showAsAction="never"/>
+
 </menu>

@@ -23,6 +23,8 @@ import io.github.gmathi.novellibrary.adapter.ChaptersPageListener
 import io.github.gmathi.novellibrary.adapter.GenericFragmentStatePagerAdapter
 import io.github.gmathi.novellibrary.database.getWebPage
 import io.github.gmathi.novellibrary.database.updateNovel
+import io.github.gmathi.novellibrary.model.database.isAutoDownloadEnabled
+import io.github.gmathi.novellibrary.model.database.setAutoDownloadEnabled
 import io.github.gmathi.novellibrary.databinding.ActivityChaptersPagerBinding
 import io.github.gmathi.novellibrary.extensions.*
 import io.github.gmathi.novellibrary.model.database.Novel
@@ -310,6 +312,10 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
     override fun onPrepareOptionsMenu(menu: Menu?): Boolean {
         menu?.getItem(1)?.isVisible = (vm.novel.id == -1L)
         menu?.getItem(2)?.isVisible = (vm.novel.id != -1L)
+        menu?.findItem(R.id.action_auto_download)?.let { item ->
+            item.isVisible = (vm.novel.id != -1L)
+            item.isChecked = vm.novel.isAutoDownloadEnabled()
+        }
         return super.onPrepareOptionsMenu(menu)
     }
 
@@ -372,6 +378,21 @@ class ChaptersPagerActivity : BaseActivity(), ActionMode.Callback, DownloadListe
                 EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
                 if (vm.novel.id != -1L)
                     dbHelper.updateNovel(vm.novel)
+                return true
+            }
+
+            R.id.action_auto_download -> {
+                if (vm.novel.id == -1L) return true
+                val enable = !vm.novel.isAutoDownloadEnabled()
+                vm.novel.setAutoDownloadEnabled(enable)
+                dbHelper.updateNovel(vm.novel)
+                item.isChecked = enable
+                val messageRes = when {
+                    enable && !dataCenter.autoDownloadNewChapters -> R.string.auto_download_needs_global_toast
+                    enable -> R.string.auto_download_enabled_toast
+                    else -> R.string.auto_download_disabled_toast
+                }
+                android.widget.Toast.makeText(this, messageRes, android.widget.Toast.LENGTH_SHORT).show()
                 return true
             }
         }
