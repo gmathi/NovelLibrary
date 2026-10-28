@@ -28,6 +28,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlin.coroutines.cancellation.CancellationException
 import uy.kohesive.injekt.injectLazy
 import java.io.File
 import java.lang.ref.WeakReference
@@ -207,6 +208,11 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
             return@withContext
 
         } catch (e: Exception) {
+            // Coroutine cancellation (e.g. the resolver Activity returns and getData relaunches,
+            // or the screen is recreated mid-challenge) is cooperative, NOT a fetch failure.
+            // Rethrow it so structured concurrency unwinds normally instead of surfacing
+            // "StandaloneCoroutine was cancelled" to the user as a reportable error.
+            if (e is CancellationException) throw e
             Logs.error(TAG, "getChapters - isRemote:$forceUpdate", e)
             // A Cloudflare challenge on the chapter fetch (403 / bypass-failed) should surface
             // to the user as the interactive resolver rather than a generic network error.
