@@ -48,6 +48,23 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         const val ACTION_OPEN_READER = "open_reader"
         const val ACTION_UPDATE_SETTINGS = "update_settings"
 
+        // Flags for (re)opening an activity from the TTS notification/media session: start a
+        // new task if needed, but if the target is already in the stack bring that existing
+        // instance to the front (CLEAR_TOP + SINGLE_TOP) instead of stacking a fresh copy on
+        // every banner tap.
+        private const val REOPEN_ACTIVITY_FLAGS =
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP or
+                    Intent.FLAG_ACTIVITY_SINGLE_TOP
+
+        // The reader reads its novel from the intent only in onCreate (no onNewIntent), so
+        // CLEAR_TOP/SINGLE_TOP would re-deliver a bundle it ignores. REORDER_TO_FRONT instead
+        // brings the existing reader instance forward without recreating it or stacking —
+        // correct because TTS reopens the reader for the novel it is already narrating.
+        private const val REOPEN_READER_FLAGS =
+            Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
+
         const val ACTION_STOP = "actionStop"
         const val ACTION_PAUSE = "actionPause"
         const val ACTION_PLAY_PAUSE = "actionPlayPause"
@@ -146,7 +163,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
             mediaCallback = TTSSessionCallback()
             setCallback(mediaCallback)
             setSessionActivity(PendingIntent.getActivity(this@TTSService, 0,
-                    Intent(this@TTSService, TextToSpeechControlsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                    Intent(this@TTSService, TextToSpeechControlsActivity::class.java).addFlags(REOPEN_ACTIVITY_FLAGS),
                     pendingIntentFlags
             ))
             // createPendingIntent(ACTION_OPEN_CONTROLS))
@@ -227,7 +244,7 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
         when (intent?.action) {
             ACTION_STARTUP -> actionStartup(intent.extras!!)
             ACTION_OPEN_CONTROLS -> {
-                startActivity(Intent(this, TextToSpeechControlsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                startActivity(Intent(this, TextToSpeechControlsActivity::class.java).addFlags(REOPEN_ACTIVITY_FLAGS))
             }
             ACTION_OPEN_READER -> {
                 val novel = player.novel
@@ -239,10 +256,10 @@ class TTSService : MediaBrowserServiceCompat(), AudioManager.OnAudioFocusChangeL
                 bundle.putParcelable("novel", novel)
                 if (player.translatorSourceName != null)
                     bundle.putString("translatorSourceName", player.translatorSourceName)
-                startActivity(Intent(this, ReaderDBPagerActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK), bundle)
+                startActivity(Intent(this, ReaderDBPagerActivity::class.java).addFlags(REOPEN_READER_FLAGS), bundle)
             }
             ACTION_OPEN_SETTINGS -> {
-                startActivity(Intent(this, TTSSettingsActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                startActivity(Intent(this, TTSSettingsActivity::class.java).addFlags(REOPEN_ACTIVITY_FLAGS))
             }
             ACTION_UPDATE_SETTINGS -> {
                 player.updateVoiceConfig()
