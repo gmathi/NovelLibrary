@@ -23,6 +23,7 @@ import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.NovelLibraryApplication
 import io.github.gmathi.novellibrary.databinding.ActivityNavDrawerBinding
 import io.github.gmathi.novellibrary.fragment.LibraryPagerFragment
+import io.github.gmathi.novellibrary.fragment.NewLibraryFragment
 import io.github.gmathi.novellibrary.compose.search.SearchFragmentCompose
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.util.Constants
@@ -227,7 +228,10 @@ class NavDrawerActivity : BaseActivity(), NavigationView.OnNavigationItemSelecte
         when (id) {
             R.id.nav_library -> {
                 currentNavId = id
-                replaceFragment(LibraryPagerFragment(), LibraryPagerFragment::class.toString())
+                if (dataCenter.useNewLibrary)
+                    replaceFragment(NewLibraryFragment(), NewLibraryFragment::class.toString())
+                else
+                    replaceFragment(LibraryPagerFragment(), LibraryPagerFragment::class.toString())
             }
 
             R.id.nav_search -> {
