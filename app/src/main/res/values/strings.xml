@@ -735,6 +735,9 @@
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
 
     <string name="source_not_installed">Source not installed: %1$s</string>
+    <string name="shared_url_unsupported_source">This site isn\'t a supported novel source.</string>
+    <string name="shared_url_invalid">No valid novel link was shared.</string>
+    <string name="importing_title">Importing</string>
 
     <string name="show_chapters_left_badge">Show remaining chapters in badge</string>
     <string name="show_chapters_left_badge_description">

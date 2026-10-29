@@ -110,7 +110,25 @@
             android:name=".activity.NovelDetailsActivity"
             android:label="@string/title_activity_novel_details"
             android:screenOrientation="fullUser"
-            android:theme="@style/DarkTheme_DarkSide" />
+            android:exported="true"
+            android:theme="@style/DarkTheme_DarkSide">
+            <!-- Share a novel's details-page URL from a browser/other app -->
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <data android:mimeType="text/plain" />
+            </intent-filter>
+            <!-- Open a supported novel details-page link directly -->
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="http" android:host="www.novelupdates.com" android:pathPrefix="/series/" />
+                <data android:scheme="https" android:host="www.novelupdates.com" android:pathPrefix="/series/" />
+                <data android:scheme="http" android:host="novelupdates.com" android:pathPrefix="/series/" />
+                <data android:scheme="https" android:host="novelupdates.com" android:pathPrefix="/series/" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activity.TextToSpeechControlsActivity"
             android:label="@string/text_to_speech_controls"
