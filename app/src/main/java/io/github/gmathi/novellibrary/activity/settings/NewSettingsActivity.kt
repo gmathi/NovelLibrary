@@ -55,6 +55,7 @@ class NewSettingsActivity : ComponentActivity() {
     private var scrollingText by mutableStateOf(false)
     private var showChaptersLeftBadge by mutableStateOf(false)
     private var loadLibraryScreen by mutableStateOf(false)
+    private var useNewLibrary by mutableStateOf(true)
     private var enableNotifications by mutableStateOf(false)
     private var dohProviderIndex by mutableStateOf(0)
     private var useAiTts by mutableStateOf(false)
@@ -98,6 +99,7 @@ class NewSettingsActivity : ComponentActivity() {
                         scrollingText = scrollingText,
                         showChaptersLeftBadge = showChaptersLeftBadge,
                         loadLibraryScreen = loadLibraryScreen,
+                        useNewLibrary = useNewLibrary,
                         enableNotifications = enableNotifications,
                         onNightModeChange = { value ->
                             nightMode = value
@@ -110,6 +112,7 @@ class NewSettingsActivity : ComponentActivity() {
                         onScrollingTextChange = { value -> scrollingText = value; dataCenter.enableScrollingText = value },
                         onShowChaptersLeftBadgeChange = { value -> showChaptersLeftBadge = value; dataCenter.showChaptersLeftBadge = value },
                         onLoadLibraryScreenChange = { value -> loadLibraryScreen = value; dataCenter.loadLibraryScreen = value },
+                        onUseNewLibraryChange = { value -> useNewLibrary = value; dataCenter.useNewLibrary = value },
                         onEnableNotificationsChange = { value ->
                             enableNotifications = value
                             dataCenter.enableNotifications = value
@@ -172,6 +175,7 @@ class NewSettingsActivity : ComponentActivity() {
         scrollingText = dataCenter.enableScrollingText
         showChaptersLeftBadge = dataCenter.showChaptersLeftBadge
         loadLibraryScreen = dataCenter.loadLibraryScreen
+        useNewLibrary = dataCenter.useNewLibrary
         enableNotifications = dataCenter.enableNotifications
         dohProviderIndex = dataCenter.dohProvider
         useAiTts = dataCenter.useAiTts

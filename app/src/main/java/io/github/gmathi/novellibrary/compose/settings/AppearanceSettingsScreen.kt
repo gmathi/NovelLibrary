@@ -28,11 +28,13 @@ fun AppearanceSettingsScreen(
     scrollingText: Boolean,
     showChaptersLeftBadge: Boolean,
     loadLibraryScreen: Boolean,
+    useNewLibrary: Boolean,
     enableNotifications: Boolean,
     onNightModeChange: (Boolean) -> Unit,
     onScrollingTextChange: (Boolean) -> Unit,
     onShowChaptersLeftBadgeChange: (Boolean) -> Unit,
     onLoadLibraryScreenChange: (Boolean) -> Unit,
+    onUseNewLibraryChange: (Boolean) -> Unit,
     onEnableNotificationsChange: (Boolean) -> Unit,
     onOpenReaderColors: () -> Unit,
     onNavigateBack: () -> Unit,
@@ -90,6 +92,14 @@ fun AppearanceSettingsScreen(
             }
 
             item { SettingsSectionHeader(title = "General") }
+            item {
+                SwitchSettingRow(
+                    title = "New library experience",
+                    subtitle = "Compose grid with tags. Turn off to use the classic section-tab library.",
+                    checked = useNewLibrary,
+                    onCheckedChange = onUseNewLibraryChange
+                )
+            }
             item {
                 SwitchSettingRow(
                     title = "Make \"Library\" main screen",

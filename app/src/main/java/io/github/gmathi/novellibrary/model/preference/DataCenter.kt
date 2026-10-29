@@ -44,6 +44,7 @@ class DataCenter(context: Context) {
 
         private const val IS_DARK_THEME = "isDarkTheme"
         private const val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
+        private const val USE_NEW_LIBRARY = "useNewLibrary"
         private const val APP_VERSION_CODE = "appVersionCode"
         private const val TEXT_SIZE = "textSize"
         private const val READER_MODE = "cleanPages"
@@ -311,6 +312,16 @@ class DataCenter(context: Context) {
     var loadLibraryScreen: Boolean
         get() = prefs.getBoolean(LOAD_LIBRARY_SCREEN, false)
         set(value) = prefs.edit().putBoolean(LOAD_LIBRARY_SCREEN, value).apply()
+
+    /**
+     * Whether the new Compose, tag-based library experience is shown. Defaults to true so the new
+     * library is the default; turning it off in settings falls back to the legacy
+     * section-tabbed [LibraryPagerFragment]. Both read the same novels; only the organization UI
+     * differs (tags vs sections).
+     */
+    var useNewLibrary: Boolean
+        get() = prefs.getBoolean(USE_NEW_LIBRARY, true)
+        set(value) = prefs.edit().putBoolean(USE_NEW_LIBRARY, value).apply()
 
     var appVersionCode: Int
         get() = prefs.getInt(APP_VERSION_CODE, 0)
