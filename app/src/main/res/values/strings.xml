@@ -277,6 +277,9 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_sync">Sync for updates</string>
+    <string name="action_refresh_covers">Refresh covers</string>
+    <string name="refresh_covers_in_progress">Refreshing covers</string>
+    <string name="refresh_covers_fetching">Refreshing cover: %1$s\nChecking: %2$d/%3$d</string>
     <string name="action_favourite">Favourite</string>
     <string name="action_bookmark">Bookmark</string>
 

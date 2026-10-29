@@ -327,8 +327,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        if (activity != null)
+        if (activity != null) {
             menu.getItem(0).isVisible = (syncSnackBar == null)
+            menu.findItem(R.id.action_refresh_covers)?.isVisible = (syncSnackBar == null)
+        }
         super.onPrepareOptionsMenu(menu)
     }
 
@@ -339,6 +341,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             R.id.action_sync -> {
                 if (networkHelper.isConnectedToNetwork())
                     syncNovels()
+                else {
+                    showAlertDialog(message = getString(R.string.no_internet))
+                }
+                return true
+            }
+            R.id.action_refresh_covers -> {
+                if (networkHelper.isConnectedToNetwork())
+                    refreshCovers()
                 else {
                     showAlertDialog(message = getString(R.string.no_internet))
                 }
@@ -535,6 +545,70 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             waitList.awaitAll()
             snackBarView(SnackBarStatus.Dismiss)
+        }
+    }
+
+    /**
+     * Manually re-fetches each library novel's details to pick up a changed cover URL, then clears
+     * the Glide image caches so covers that changed remotely (even behind an unchanged URL) or
+     * previously failed to load are re-downloaded on the next bind. Kept separate from [syncNovels]
+     * (per issue #187 discussion) so a cover refresh does not add load to the chapter sync.
+     */
+    private fun refreshCovers(novel: Novel? = null) {
+        lifecycleScope.launch(Dispatchers.IO) refreshing@{
+            if (activity == null) return@refreshing
+            snackBarView(SnackBarStatus.Initialize, message = getString(R.string.refresh_covers_in_progress) + " - " + getString(R.string.please_wait))
+
+            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.count())
+
+            // Disk cache must be cleared off the main thread; do it once up front so the subsequent
+            // re-binds re-fetch instead of serving a stale cached image for an unchanged URL.
+            try {
+                Glide.get(requireContext().applicationContext).clearDiskCache()
+            } catch (e: Exception) {
+                Logs.error(TAG, "refreshCovers: clearDiskCache", e)
+            }
+
+            val throttle = DomainThrottle()
+            val waitList = LinkedList<Deferred<Boolean>>()
+            val counter = java.util.concurrent.atomic.AtomicInteger(0)
+
+            novels.forEach { libraryNovel ->
+                waitList.add(async {
+                    try {
+                        val source = sourceManager.get(libraryNovel.sourceId)
+                        if (source != null) {
+                            val fetched = throttle.withDomainPermit(libraryNovel.url) {
+                                withContext(Dispatchers.IO) { source.getNovelDetails(libraryNovel) }
+                            }
+                            // getNovelDetails returns the same novel instance with fresh details
+                            // (including a possibly-updated imageUrl); persist it to keep the id.
+                            if (fetched != null && fetched.id != -1L) {
+                                dbHelper.updateNovel(fetched)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Logs.error(TAG, "refreshCovers: ${libraryNovel.name}", e)
+                    }
+                    val done = counter.incrementAndGet()
+                    val message = getString(R.string.refresh_covers_fetching, libraryNovel.name, done, novels.count())
+                    snackBarView(SnackBarStatus.Update, message = message, progress = done)
+                    true
+                })
+            }
+
+            waitList.awaitAll()
+
+            withContext(Dispatchers.Main) {
+                // Memory cache must be cleared on the main thread.
+                activity?.let {
+                    try { Glide.get(it.applicationContext).clearMemory() } catch (e: Exception) { Logs.error(TAG, "refreshCovers: clearMemory", e) }
+                }
+            }
+
+            snackBarView(SnackBarStatus.Dismiss)
+            setData()
         }
     }
 
