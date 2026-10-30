@@ -8,6 +8,21 @@ import io.github.gmathi.novellibrary.util.logging.Logs
 private const val LOG = "NovelTagHelper"
 
 /**
+ * Compose-free ARGB palette so the data layer can auto-assign a tag color at creation without
+ * depending on the UI. Must stay in sync with the UI palette (TagColors.palette) so a swatch the
+ * user sees matches what a fresh tag gets.
+ */
+object TagPalette {
+    val argb: List<Long> = listOf(
+        0xFFE53935, 0xFFD81B60, 0xFF8E24AA, 0xFF5E35B1, 0xFF3949AB,
+        0xFF1E88E5, 0xFF039BE5, 0xFF00897B, 0xFF43A047, 0xFF7CB342,
+        0xFFF9A825, 0xFFFB8C00, 0xFFF4511E, 0xFF6D4C41, 0xFF546E7A
+    )
+
+    fun colorForOrder(order: Int): Long = argb[(if (order < 0) 0 else order) % argb.size]
+}
+
+/**
  * DBHelper extension layer for the tag model. Mirrors the style of [NovelSectionHelper]/[NovelHelper]
  * (raw-SQL over the shared `bnr_db`) so the new Compose library can read/write tags through the
  * same singleton the rest of the app already injects.
@@ -16,10 +31,14 @@ private const val LOG = "NovelTagHelper"
 fun DBHelper.createNovelTag(name: String, color: Long? = null): Long {
     val existing = getNovelTagByName(name)
     if (existing != null) return existing.id
+    val order = getAllNovelTags().size
+    // Auto-assign a palette color by order so a new tag is visually distinct without the user
+    // having to pick one; an explicit color (from the manager) overrides it.
+    val assignedColor = color ?: TagPalette.colorForOrder(order)
     val values = ContentValues()
     values.put(DBKeys.KEY_NAME, name)
-    if (color != null) values.put(DBKeys.KEY_COLOR, color)
-    values.put(DBKeys.KEY_ORDER_ID, getAllNovelTags().size.toLong())
+    values.put(DBKeys.KEY_COLOR, assignedColor)
+    values.put(DBKeys.KEY_ORDER_ID, order.toLong())
     return this.writableDatabase.insert(DBKeys.TABLE_NOVEL_TAG, null, values)
 }
 
