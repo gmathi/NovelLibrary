@@ -11,6 +11,7 @@ import io.github.gmathi.novellibrary.database.*
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.error.Exceptions
 import io.github.gmathi.novellibrary.util.logging.Logs
@@ -45,8 +46,10 @@ sealed interface NovelDetailsUiState {
     /** The novel source is missing — unrecoverable. */
     data object MissingSource : NovelDetailsUiState
 
-    /** Cloudflare challenge detected — user action required. */
-    data object CloudflareChallenge : NovelDetailsUiState
+    /** Cloudflare challenge detected — user action required. [gatedUrl] is the exact URL of
+     *  the fetch that triggered the challenge, so manual verification loads the originating
+     *  domain (e.g. RoyalRoad) rather than a hardcoded fallback. */
+    data class CloudflareChallenge(val gatedUrl: String) : NovelDetailsUiState
 }
 
 /**
@@ -197,7 +200,11 @@ class NovelDetailsViewModel(private val state: SavedStateHandle) : ViewModel() {
             (message.contains("cloudflare", ignoreCase = true) ||
                     message.contains("HTTP error 503")) && cloudflareErrorCount < MAX_CLOUDFLARE_RETRIES -> {
                 cloudflareErrorCount++
-                _uiState.value = NovelDetailsUiState.CloudflareChallenge
+                // Prefer the exact URL the interceptor flagged as gated (e.g. the RoyalRoad
+                // details page) so manual verification targets the originating domain; fall
+                // back to the novel's own URL rather than any hardcoded host.
+                val gatedUrl = CloudflareInterceptor.extractGatedUrl(e) ?: novel.url
+                _uiState.value = NovelDetailsUiState.CloudflareChallenge(gatedUrl)
             }
 
             else -> {
