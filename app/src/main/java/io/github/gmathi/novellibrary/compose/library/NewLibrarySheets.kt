@@ -4,8 +4,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
@@ -35,59 +33,74 @@ fun LibrarySortSheet(
             modifier = Modifier
                 .fillMaxWidth()
                 .navigationBarsPadding()
-                .verticalScroll(rememberScrollState())
-                .padding(bottom = 24.dp)
+                .padding(horizontal = 24.dp)
+                .padding(bottom = 24.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            SortSectionHeader("Sort by")
-            SortKey.values().forEach { option ->
-                SortOptionRow(
-                    label = option.label,
-                    selected = option == currentKey,
-                    onClick = { onSelectKey(option) }
-                )
-            }
+            Text(
+                text = "Sort",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.onSurface
+            )
 
-            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+            SortDropdown(
+                label = "Sort by",
+                options = SortKey.values().toList(),
+                selected = currentKey,
+                optionLabel = { it.label },
+                onSelect = onSelectKey
+            )
 
-            SortSectionHeader("Order")
-            SortDirection.values().forEach { option ->
-                SortOptionRow(
-                    label = option.label,
-                    selected = option == currentDirection,
-                    onClick = { onSelectDirection(option) }
-                )
-            }
+            SortDropdown(
+                label = "Order",
+                options = SortDirection.values().toList(),
+                selected = currentDirection,
+                optionLabel = { it.label },
+                onSelect = onSelectDirection
+            )
         }
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-private fun SortSectionHeader(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-        color = MaterialTheme.colorScheme.onSurface
-    )
-}
-
-@Composable
-private fun SortOptionRow(label: String, selected: Boolean, onClick: () -> Unit) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = 24.dp, vertical = 12.dp)
+private fun <T> SortDropdown(
+    label: String,
+    options: List<T>,
+    selected: T,
+    optionLabel: (T) -> String,
+    onSelect: (T) -> Unit
+) {
+    var expanded by remember { mutableStateOf(false) }
+    ExposedDropdownMenuBox(
+        expanded = expanded,
+        onExpandedChange = { expanded = it }
     ) {
-        RadioButton(selected = selected, onClick = onClick)
-        Spacer(Modifier.width(12.dp))
-        Text(
-            text = label,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface
+        OutlinedTextField(
+            value = optionLabel(selected),
+            onValueChange = {},
+            readOnly = true,
+            label = { Text(label) },
+            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+            modifier = Modifier
+                .fillMaxWidth()
+                .menuAnchor()
         )
+        ExposedDropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(optionLabel(option)) },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
     }
 }
 
