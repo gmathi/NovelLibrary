@@ -19,6 +19,10 @@ import io.github.gmathi.novellibrary.compose.library.NewLibraryActions
 import io.github.gmathi.novellibrary.compose.library.NewLibraryScreen
 import io.github.gmathi.novellibrary.compose.theme.NovelLibraryTheme
 import io.github.gmathi.novellibrary.database.getAllNovels
+import io.github.gmathi.novellibrary.database.getNovelByUrl
+import io.github.gmathi.novellibrary.database.getTagIdsForNovel
+import io.github.gmathi.novellibrary.database.resetNovel
+import io.github.gmathi.novellibrary.database.setNovelTags
 import io.github.gmathi.novellibrary.database.updateChaptersAndReleasesCount
 import io.github.gmathi.novellibrary.database.updateNewReleasesCount
 import io.github.gmathi.novellibrary.database.updateNovel
@@ -96,6 +100,7 @@ class NewLibraryFragment : BaseFragment() {
                         onNovelDetails = { novel -> (activity as? AppCompatActivity)?.startNovelDetailsActivity(novel, false) },
                         onNovelRead = { novel -> startReader(novel) },
                         onNovelRemove = { novel -> confirmRemove(novel) },
+                        onNovelHardReset = { novel -> confirmHardReset(novel) },
                         onSync = { startSync() },
                         onRefreshCovers = { startRefreshCovers() },
                         onSearchClick = { (activity as? AppCompatActivity)?.startLibrarySearchActivity() }
@@ -139,6 +144,44 @@ class NewLibraryFragment : BaseFragment() {
                     this@NewLibraryFragment.deleteNovel(novel)
                     viewModel.refreshAfterExternalChange()
                     dialog.dismiss()
+                }
+                negativeButton(R.string.cancel)
+                lifecycleOwner(this@NewLibraryFragment)
+            }
+        }
+    }
+
+    /**
+     * Hard reset: delete ALL of a novel's local data (chapters, webpage settings, genres, downloads)
+     * and re-fetch its details fresh, via the existing [resetNovel]. This matches the legacy
+     * library's "hard reset". Because resetNovel deletes and re-inserts the novel row (new id), the
+     * tag links keyed on the old id are re-applied to the fresh novel afterwards so the user's tags
+     * survive the reset. Network-dependent, so it is gated on connectivity and runs off the main thread.
+     */
+    private fun confirmHardReset(novel: Novel) {
+        activity?.let { act ->
+            MaterialDialog(act).show {
+                title(text = "Hard reset \"${novel.name}\"?")
+                message(text = "This deletes all downloaded chapters and local data for this novel and re-fetches it from the source. Your reading position will be lost. Tags are kept.")
+                positiveButton(text = "Hard reset") { dialog ->
+                    dialog.dismiss()
+                    if (!networkHelper.isConnectedToNetwork()) { showNoInternet(); return@positiveButton }
+                    if (syncing) return@positiveButton
+                    beginSyncing()
+                    lifecycleScope.launch(Dispatchers.IO) {
+                        try {
+                            val tagIds = dbHelper.getTagIdsForNovel(novel.id)
+                            dbHelper.resetNovel(novel)
+                            // Re-link tags to the freshly re-inserted novel (matched by url).
+                            val fresh = dbHelper.getNovelByUrl(novel.url)
+                            if (fresh != null && tagIds.isNotEmpty()) dbHelper.setNovelTags(fresh.id, tagIds)
+                        } catch (e: Exception) {
+                            Logs.error(TAG, "hardReset: ${novel.name}", e)
+                        } finally {
+                            endSyncing()
+                            withContext(Dispatchers.Main) { viewModel.load() }
+                        }
+                    }
                 }
                 negativeButton(R.string.cancel)
                 lifecycleOwner(this@NewLibraryFragment)

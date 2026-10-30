@@ -17,14 +17,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.gmathi.novellibrary.model.database.Novel
-import io.github.gmathi.novellibrary.viewmodel.LibrarySort
+import io.github.gmathi.novellibrary.viewmodel.SortDirection
+import io.github.gmathi.novellibrary.viewmodel.SortKey
 import io.github.gmathi.novellibrary.viewmodel.LibraryTag
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LibrarySortSheet(
-    current: LibrarySort,
-    onSelect: (LibrarySort) -> Unit,
+    currentKey: SortKey,
+    currentDirection: SortDirection,
+    onSelectKey: (SortKey) -> Unit,
+    onSelectDirection: (SortDirection) -> Unit,
     onDismiss: () -> Unit
 ) {
     ModalBottomSheet(onDismissRequest = onDismiss) {
@@ -35,31 +38,56 @@ fun LibrarySortSheet(
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 24.dp)
         ) {
-            Text(
-                text = "Sort by",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.SemiBold,
-                modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            LibrarySort.values().forEach { option ->
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clickable { onSelect(option) }
-                        .padding(horizontal = 24.dp, vertical = 14.dp)
-                ) {
-                    RadioButton(selected = option == current, onClick = { onSelect(option) })
-                    Spacer(Modifier.width(12.dp))
-                    Text(
-                        text = option.label,
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                }
+            SortSectionHeader("Sort by")
+            SortKey.values().forEach { option ->
+                SortOptionRow(
+                    label = option.label,
+                    selected = option == currentKey,
+                    onClick = { onSelectKey(option) }
+                )
+            }
+
+            HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+            SortSectionHeader("Order")
+            SortDirection.values().forEach { option ->
+                SortOptionRow(
+                    label = option.label,
+                    selected = option == currentDirection,
+                    onClick = { onSelectDirection(option) }
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun SortSectionHeader(text: String) {
+    Text(
+        text = text,
+        style = MaterialTheme.typography.titleMedium,
+        fontWeight = FontWeight.SemiBold,
+        modifier = Modifier.padding(horizontal = 24.dp, vertical = 12.dp),
+        color = MaterialTheme.colorScheme.onSurface
+    )
+}
+
+@Composable
+private fun SortOptionRow(label: String, selected: Boolean, onClick: () -> Unit) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick)
+            .padding(horizontal = 24.dp, vertical = 12.dp)
+    ) {
+        RadioButton(selected = selected, onClick = onClick)
+        Spacer(Modifier.width(12.dp))
+        Text(
+            text = label,
+            style = MaterialTheme.typography.bodyLarge,
+            color = MaterialTheme.colorScheme.onSurface
+        )
     }
 }
 
@@ -114,11 +142,7 @@ fun AssignTagsSheet(
                                 onCheckedChange = { onToggle(libraryTag.tag.id, it) }
                             )
                             Spacer(Modifier.width(12.dp))
-                            Text(
-                                text = libraryTag.tag.name,
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
+                            TagChip(tag = libraryTag.tag)
                         }
                     }
                 }

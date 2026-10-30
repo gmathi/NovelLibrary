@@ -10,6 +10,7 @@ import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Sort
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.Clear
@@ -18,6 +19,7 @@ import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Sync
+import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -32,9 +34,11 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import io.github.gmathi.novellibrary.compose.common.EmptyView
 import io.github.gmathi.novellibrary.compose.common.URLImage
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.NovelTag
 import io.github.gmathi.novellibrary.util.Constants
-import io.github.gmathi.novellibrary.viewmodel.LibrarySort
 import io.github.gmathi.novellibrary.viewmodel.NewLibraryViewModel
+import io.github.gmathi.novellibrary.viewmodel.SortDirection
+import io.github.gmathi.novellibrary.viewmodel.SortKey
 import io.github.gmathi.novellibrary.viewmodel.TagFilterMode
 
 /** Callbacks the host (fragment/activity) supplies for navigation and background work. */
@@ -44,6 +48,7 @@ data class NewLibraryActions(
     val onNovelDetails: (Novel) -> Unit,
     val onNovelRead: (Novel) -> Unit,
     val onNovelRemove: (Novel) -> Unit,
+    val onNovelHardReset: (Novel) -> Unit,
     val onSync: () -> Unit,
     val onRefreshCovers: () -> Unit,
     val onSearchClick: () -> Unit
@@ -124,12 +129,13 @@ fun NewLibraryScreen(
                 else -> NovelCoverGrid(
                     novels = state.novels,
                     novelTagIds = state.novelTagIds,
-                    tagNames = state.tags.associate { it.tag.id to it.tag.name },
+                    tagsById = state.tags.associate { it.tag.id to it.tag },
                     onClick = actions.onNovelClick,
                     onDetails = actions.onNovelDetails,
                     onRead = actions.onNovelRead,
                     onAssignTags = { assignTagsFor = it },
-                    onRemove = actions.onNovelRemove
+                    onRemove = actions.onNovelRemove,
+                    onHardReset = actions.onNovelHardReset
                 )
             }
         }
@@ -137,11 +143,10 @@ fun NewLibraryScreen(
 
     if (showSortSheet) {
         LibrarySortSheet(
-            current = state.sort,
-            onSelect = {
-                viewModel.setSort(it)
-                showSortSheet = false
-            },
+            currentKey = state.sortKey,
+            currentDirection = state.sortDirection,
+            onSelectKey = viewModel::setSortKey,
+            onSelectDirection = viewModel::setSortDirection,
             onDismiss = { showSortSheet = false }
         )
     }
@@ -241,10 +246,28 @@ private fun TagFilterBar(
             )
         }
         tags.forEach { libraryTag ->
+            val isSelected = libraryTag.tag.id in selected
+            val base = TagColors.resolveTagColor(libraryTag.tag.color, libraryTag.tag.name)
             FilterChip(
-                selected = libraryTag.tag.id in selected,
+                selected = isSelected,
                 onClick = { onToggle(libraryTag.tag.id) },
-                label = { Text("${libraryTag.tag.name} (${libraryTag.novelCount})") }
+                label = { Text("${libraryTag.tag.name} (${libraryTag.novelCount})") },
+                leadingIcon = {
+                    Box(
+                        modifier = Modifier
+                            .size(12.dp)
+                            .clip(RoundedCornerShape(50))
+                            .background(base)
+                    )
+                },
+                border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = isSelected,
+                    borderColor = base,
+                    selectedBorderColor = base,
+                    borderWidth = 1.dp,
+                    selectedBorderWidth = 2.dp
+                )
             )
         }
     }
@@ -254,15 +277,16 @@ private fun TagFilterBar(
 private fun NovelCoverGrid(
     novels: List<Novel>,
     novelTagIds: Map<Long, List<Long>>,
-    tagNames: Map<Long, String>,
+    tagsById: Map<Long, NovelTag>,
     onClick: (Novel) -> Unit,
     onDetails: (Novel) -> Unit,
     onRead: (Novel) -> Unit,
     onAssignTags: (Novel) -> Unit,
-    onRemove: (Novel) -> Unit
+    onRemove: (Novel) -> Unit,
+    onHardReset: (Novel) -> Unit
 ) {
     LazyVerticalGrid(
-        columns = GridCells.Adaptive(minSize = 110.dp),
+        columns = GridCells.Fixed(2),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
@@ -271,94 +295,97 @@ private fun NovelCoverGrid(
         items(novels, key = { "${it.id}_${it.url}" }) { novel ->
             NovelGridItem(
                 novel = novel,
-                tagNames = novelTagIds[novel.id].orEmpty().mapNotNull { tagNames[it] },
+                tags = novelTagIds[novel.id].orEmpty().mapNotNull { tagsById[it] },
                 onClick = { onClick(novel) },
                 onDetails = { onDetails(novel) },
                 onRead = { onRead(novel) },
                 onAssignTags = { onAssignTags(novel) },
-                onRemove = { onRemove(novel) }
+                onRemove = { onRemove(novel) },
+                onHardReset = { onHardReset(novel) }
             )
         }
     }
 }
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun NovelGridItem(
     novel: Novel,
-    tagNames: List<String>,
+    tags: List<NovelTag>,
     onClick: () -> Unit,
     onDetails: () -> Unit,
     onRead: () -> Unit,
     onAssignTags: () -> Unit,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    onHardReset: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
 
-    Column(
-        modifier = Modifier.clickable(onClick = onClick)
-    ) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .aspectRatio(0.7f)
-                .clip(RoundedCornerShape(10.dp))
-                .background(MaterialTheme.colorScheme.surfaceVariant)
-        ) {
-            if (!novel.imageUrl.isNullOrBlank()) {
-                URLImage(
-                    imageUrl = novel.imageUrl,
-                    contentDescription = novel.name,
-                    modifier = Modifier.matchParentSize(),
-                    width = 200.dp,
-                    height = 286.dp,
-                    shape = RoundedCornerShape(10.dp),
-                    contentScale = ContentScale.Crop,
-                    errorContent = { CoverPlaceholderGrid() }
-                )
-            } else {
-                CoverPlaceholderGrid()
-            }
-
-            // New releases badge
-            if (novel.newReleasesCount > 0) {
-                Surface(
-                    modifier = Modifier
-                        .align(Alignment.TopStart)
-                        .padding(6.dp),
-                    shape = RoundedCornerShape(8.dp),
-                    color = MaterialTheme.colorScheme.error
-                ) {
-                    Text(
-                        text = "${novel.newReleasesCount}",
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onError
+    // Tapping the cover opens the reader (continue reading); the side strip gives quick access to
+    // the chapter list (contents) and the novel details, with More for the rest.
+    Column(modifier = Modifier.clickable(onClick = onRead)) {
+        // Cover on the left, quick actions in a strip to its side.
+        Row(modifier = Modifier.fillMaxWidth()) {
+            Box(
+                modifier = Modifier
+                    .weight(1f)
+                    .aspectRatio(0.7f)
+                    .clip(RoundedCornerShape(10.dp))
+                    .background(MaterialTheme.colorScheme.surfaceVariant)
+            ) {
+                if (!novel.imageUrl.isNullOrBlank()) {
+                    URLImage(
+                        imageUrl = novel.imageUrl,
+                        contentDescription = novel.name,
+                        modifier = Modifier.matchParentSize(),
+                        width = 200.dp,
+                        height = 286.dp,
+                        shape = RoundedCornerShape(10.dp),
+                        contentScale = ContentScale.Crop,
+                        errorContent = { CoverPlaceholderGrid() }
                     )
+                } else {
+                    CoverPlaceholderGrid()
                 }
-            }
 
-            // Overflow menu button
-            Box(modifier = Modifier.align(Alignment.TopEnd)) {
-                IconButton(onClick = { showMenu = true }) {
+                if (novel.newReleasesCount > 0) {
                     Surface(
-                        shape = RoundedCornerShape(50),
-                        color = Color.Black.copy(alpha = 0.45f)
+                        modifier = Modifier
+                            .align(Alignment.TopStart)
+                            .padding(6.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.error
                     ) {
-                        Icon(
-                            Icons.Filled.MoreVert,
-                            contentDescription = "Novel options",
-                            tint = Color.White,
-                            modifier = Modifier.padding(2.dp).size(20.dp)
+                        Text(
+                            text = "${novel.newReleasesCount}",
+                            modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onError
                         )
                     }
                 }
-                DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
-                    DropdownMenuItem(text = { Text("Open chapters") }, onClick = { showMenu = false; onClick() })
-                    DropdownMenuItem(text = { Text("Continue reading") }, onClick = { showMenu = false; onRead() })
-                    DropdownMenuItem(text = { Text("Novel details") }, onClick = { showMenu = false; onDetails() })
-                    DropdownMenuItem(text = { Text("Edit tags") }, onClick = { showMenu = false; onAssignTags() })
-                    DropdownMenuItem(text = { Text("Remove from library") }, onClick = { showMenu = false; onRemove() })
+            }
+
+            // Side quick-action strip.
+            Column(
+                modifier = Modifier.padding(start = 4.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                QuickAction(icon = Icons.AutoMirrored.Filled.List, label = "Contents", onClick = onClick)
+                QuickAction(icon = Icons.Outlined.Info, label = "Details", onClick = onDetails)
+                Box {
+                    QuickAction(icon = Icons.Filled.MoreVert, label = "More", onClick = { showMenu = true })
+                    NovelContextMenu(
+                        expanded = showMenu,
+                        onDismiss = { showMenu = false },
+                        onOpen = onClick,
+                        onRead = onRead,
+                        onDetails = onDetails,
+                        onAssignTags = onAssignTags,
+                        onRemove = onRemove,
+                        onHardReset = onHardReset
+                    )
                 }
             }
         }
@@ -384,15 +411,56 @@ private fun NovelGridItem(
             )
         }
 
-        if (tagNames.isNotEmpty()) {
-            Text(
-                text = tagNames.joinToString(" · "),
-                style = MaterialTheme.typography.labelSmall,
-                color = MaterialTheme.colorScheme.primary,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+        if (tags.isNotEmpty()) {
+            FlowRow(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                tags.forEach { tag -> TagChip(tag = tag) }
+            }
         }
+    }
+}
+
+@Composable
+private fun QuickAction(
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    label: String,
+    onClick: () -> Unit
+) {
+    IconButton(onClick = onClick) {
+        Icon(icon, contentDescription = label, tint = MaterialTheme.colorScheme.onSurfaceVariant)
+    }
+}
+
+@Composable
+private fun NovelContextMenu(
+    expanded: Boolean,
+    onDismiss: () -> Unit,
+    onOpen: () -> Unit,
+    onRead: () -> Unit,
+    onDetails: () -> Unit,
+    onAssignTags: () -> Unit,
+    onRemove: () -> Unit,
+    onHardReset: () -> Unit
+) {
+    DropdownMenu(expanded = expanded, onDismissRequest = onDismiss) {
+        DropdownMenuItem(text = { Text("Open chapters") }, onClick = { onDismiss(); onOpen() })
+        DropdownMenuItem(text = { Text("Continue reading") }, onClick = { onDismiss(); onRead() })
+        DropdownMenuItem(text = { Text("Novel details") }, onClick = { onDismiss(); onDetails() })
+        DropdownMenuItem(text = { Text("Edit tags") }, onClick = { onDismiss(); onAssignTags() })
+        HorizontalDivider()
+        DropdownMenuItem(
+            text = { Text("Hard reset", color = MaterialTheme.colorScheme.error) },
+            onClick = { onDismiss(); onHardReset() }
+        )
+        DropdownMenuItem(
+            text = { Text("Remove from library", color = MaterialTheme.colorScheme.error) },
+            onClick = { onDismiss(); onRemove() }
+        )
     }
 }
 

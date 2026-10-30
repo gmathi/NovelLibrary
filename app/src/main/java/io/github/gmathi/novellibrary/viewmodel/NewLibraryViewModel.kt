@@ -13,6 +13,7 @@ import io.github.gmathi.novellibrary.database.getGenres
 import io.github.gmathi.novellibrary.database.getNovelCountPerTag
 import io.github.gmathi.novellibrary.database.removeTagFromNovel
 import io.github.gmathi.novellibrary.database.setNovelTags
+import io.github.gmathi.novellibrary.database.updateNovelTagColor
 import io.github.gmathi.novellibrary.database.updateNovelTagName
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelTag
@@ -27,20 +28,20 @@ import uy.kohesive.injekt.injectLazy
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-/** Well-defined sort options for the new library. */
-enum class LibrarySort(val label: String) {
-    TITLE_ASC("Title (A → Z)"),
-    TITLE_DESC("Title (Z → A)"),
-    LAST_READ_NEWEST("Last read (newest first)"),
-    LAST_READ_OLDEST("Last read (oldest first)"),
-    LAST_UPDATED_NEWEST("Last updated (newest first)"),
-    LAST_UPDATED_OLDEST("Last updated (oldest first)"),
-    RECENTLY_ADDED_NEWEST("Recently added (newest first)"),
-    RECENTLY_ADDED_OLDEST("Recently added (oldest first)"),
-    RECENTLY_DOWNLOADED_NEWEST("Recently downloaded (newest first)"),
-    RECENTLY_DOWNLOADED_OLDEST("Recently downloaded (oldest first)"),
-    UNREAD_COUNT_DESC("Most unread chapters"),
-    UNREAD_COUNT_ASC("Fewest unread chapters")
+/** What to order the library by. Direction is chosen separately (see [SortDirection]). */
+enum class SortKey(val label: String) {
+    TITLE("Title"),
+    LAST_READ("Last read"),
+    LAST_UPDATED("Last updated"),
+    RECENTLY_ADDED("Date added"),
+    RECENTLY_DOWNLOADED("Date downloaded"),
+    UNREAD_COUNT("Unread chapters")
+}
+
+/** Ascending / descending, applied on top of the chosen [SortKey]. */
+enum class SortDirection(val label: String) {
+    ASCENDING("Ascending"),
+    DESCENDING("Descending")
 }
 
 /** How selected tag filters combine. */
@@ -64,7 +65,8 @@ data class NewLibraryUiState(
     val novelTagIds: Map<Long, List<Long>> = emptyMap(),
     val selectedTagIds: Set<Long> = emptySet(),
     val tagFilterMode: TagFilterMode = TagFilterMode.ANY,
-    val sort: LibrarySort = LibrarySort.TITLE_ASC,
+    val sortKey: SortKey = SortKey.TITLE,
+    val sortDirection: SortDirection = SortDirection.ASCENDING,
     val query: String = ""
 ) {
     val isEmpty: Boolean get() = !isLoading && novels.isEmpty()
@@ -123,8 +125,13 @@ class NewLibraryViewModel : ViewModel() {
         val counts: Map<Long, Int>
     )
 
-    fun setSort(sort: LibrarySort) {
-        _uiState.value = _uiState.value.copy(sort = sort)
+    fun setSortKey(key: SortKey) {
+        _uiState.value = _uiState.value.copy(sortKey = key)
+        recompute()
+    }
+
+    fun setSortDirection(direction: SortDirection) {
+        _uiState.value = _uiState.value.copy(sortDirection = direction)
         recompute()
     }
 
@@ -171,23 +178,25 @@ class NewLibraryViewModel : ViewModel() {
             }
         }
 
-        val sorted = sortSequence(result.toList(), state.sort)
+        val sorted = sortSequence(result.toList(), state.sortKey, state.sortDirection)
         _uiState.value = _uiState.value.copy(novels = sorted)
     }
 
-    private fun sortSequence(novels: List<Novel>, sort: LibrarySort): List<Novel> = when (sort) {
-        LibrarySort.TITLE_ASC -> novels.sortedBy { it.name.lowercase() }
-        LibrarySort.TITLE_DESC -> novels.sortedByDescending { it.name.lowercase() }
-        LibrarySort.RECENTLY_ADDED_NEWEST -> novels.sortedByDescending { it.id }
-        LibrarySort.RECENTLY_ADDED_OLDEST -> novels.sortedBy { it.id }
-        LibrarySort.LAST_READ_NEWEST -> byDate(novels, Constants.MetaDataKeys.LAST_READ_DATE, ascending = false)
-        LibrarySort.LAST_READ_OLDEST -> byDate(novels, Constants.MetaDataKeys.LAST_READ_DATE, ascending = true)
-        LibrarySort.LAST_UPDATED_NEWEST -> byDate(novels, Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = false)
-        LibrarySort.LAST_UPDATED_OLDEST -> byDate(novels, Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending = true)
-        LibrarySort.RECENTLY_DOWNLOADED_NEWEST -> byDate(novels, Constants.MetaDataKeys.LAST_DOWNLOAD_DATE, ascending = false)
-        LibrarySort.RECENTLY_DOWNLOADED_OLDEST -> byDate(novels, Constants.MetaDataKeys.LAST_DOWNLOAD_DATE, ascending = true)
-        LibrarySort.UNREAD_COUNT_DESC -> novels.sortedByDescending { it.newReleasesCount }
-        LibrarySort.UNREAD_COUNT_ASC -> novels.sortedBy { it.newReleasesCount }
+    private fun sortSequence(novels: List<Novel>, key: SortKey, direction: SortDirection): List<Novel> {
+        val ascending = direction == SortDirection.ASCENDING
+        return when (key) {
+            SortKey.TITLE ->
+                if (ascending) novels.sortedBy { it.name.lowercase() }
+                else novels.sortedByDescending { it.name.lowercase() }
+            SortKey.RECENTLY_ADDED ->
+                if (ascending) novels.sortedBy { it.id } else novels.sortedByDescending { it.id }
+            SortKey.LAST_READ -> byDate(novels, Constants.MetaDataKeys.LAST_READ_DATE, ascending)
+            SortKey.LAST_UPDATED -> byDate(novels, Constants.MetaDataKeys.LAST_UPDATED_DATE, ascending)
+            SortKey.RECENTLY_DOWNLOADED -> byDate(novels, Constants.MetaDataKeys.LAST_DOWNLOAD_DATE, ascending)
+            SortKey.UNREAD_COUNT ->
+                if (ascending) novels.sortedBy { it.newReleasesCount }
+                else novels.sortedByDescending { it.newReleasesCount }
+        }
     }
 
     /** Sort by a `d MMM yyyy` metadata date; novels without a parseable date always sort last. */
@@ -217,6 +226,14 @@ class NewLibraryViewModel : ViewModel() {
         if (trimmed.isEmpty()) return
         viewModelScope.launch {
             withContext(Dispatchers.IO) { dbHelper.updateNovelTagName(tagId, trimmed) }
+            load()
+        }
+    }
+
+    /** Persist a per-tag ARGB color (null clears it back to the name-derived default). */
+    fun updateTagColor(tagId: Long, color: Long?) {
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) { dbHelper.updateNovelTagColor(tagId, color) }
             load()
         }
     }
