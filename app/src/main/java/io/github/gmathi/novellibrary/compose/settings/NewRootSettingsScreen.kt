@@ -35,6 +35,7 @@ fun NewRootSettingsScreen(
     onOpenNetworkPrivacy: () -> Unit,
     onOpenStorageBackup: () -> Unit,
     onOpenSync: () -> Unit,
+    onOpenLibraryTags: () -> Unit,
     onOpenAboutHelp: () -> Unit,
     onSwitchToClassic: () -> Unit,
 ) {
@@ -61,6 +62,14 @@ fun NewRootSettingsScreen(
                     title = "Appearance & Theme",
                     subtitle = "Night mode, scrolling text, badges, reader colors",
                     onClick = onOpenAppearance
+                )
+            }
+            item { HorizontalDivider() }
+            item {
+                ChevronSettingRow(
+                    title = "Library Tags",
+                    subtitle = "Create, rename, color and delete library tags",
+                    onClick = onOpenLibraryTags
                 )
             }
             item { HorizontalDivider() }

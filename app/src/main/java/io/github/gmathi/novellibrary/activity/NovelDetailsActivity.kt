@@ -64,6 +64,10 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     /** True when this screen was opened from a shared/deep-linked URL rather than in-app navigation. */
     private var fromSharedUrl = false
 
+    /** URL of the fetch that triggered the last Cloudflare challenge; used to open the manual
+     *  resolver on the originating domain and to clear the right host's forced-WebView flag. */
+    private var cloudflareGatedUrl: String? = null
+
     private val cloudflareResolverLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -72,7 +76,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 CloudflareResolverActivity.RESULT_COOKIES_SAVED, false
             ) ?: false
             io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
-                .onManualVerificationComplete("https://${HostNames.NOVEL_UPDATES}", cookiesSaved)
+                .onManualVerificationComplete(cloudflareGatedUrl ?: viewModel.novel.url, cookiesSaved)
             viewModel.onCloudflareResolved()
         }
     }
@@ -156,6 +160,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
                         is NovelDetailsUiState.CloudflareChallenge -> {
                             isLoadingDetails = false
+                            cloudflareGatedUrl = state.gatedUrl
                             showCloudflareResolverDialog()
                         }
                     }
@@ -416,7 +421,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             title(text = getString(R.string.cloudflare_verification_required))
             message(text = getString(R.string.cloudflare_verification_message))
             positiveButton(text = getString(R.string.resolve_manually)) {
-                val url = "https://${HostNames.NOVEL_UPDATES}"
+                val url = cloudflareGatedUrl ?: "https://${HostNames.NOVEL_UPDATES}"
                 val intent = CloudflareResolverActivity.createIntent(this@NovelDetailsActivity, url)
                 cloudflareResolverLauncher.launch(intent)
             }
