@@ -201,6 +201,9 @@ class NewLibraryFragment : BaseFragment() {
             try {
                 val throttle = DomainThrottle()
                 val novels = dbHelper.getAllNovels()
+                val total = novels.size
+                val done = java.util.concurrent.atomic.AtomicInteger(0)
+                withContext(Dispatchers.Main) { viewModel.setSyncStatus("Syncing library…", 0, total) }
                 val totalChaptersMap = java.util.Collections.synchronizedMap(HashMap<Novel, ArrayList<WebPage>>())
 
                 val fetchJobs = LinkedList<Deferred<Boolean>>()
@@ -225,11 +228,16 @@ class NewLibraryFragment : BaseFragment() {
                         } catch (e: Exception) {
                             Logs.error(TAG, "sync fetch: ${novel.name}", e)
                         }
+                        val completed = done.incrementAndGet()
+                        withContext(Dispatchers.Main) {
+                            viewModel.setSyncStatus("Syncing — ${novel.name}", completed, total)
+                        }
                         true
                     })
                 }
                 fetchJobs.awaitAll()
 
+                withContext(Dispatchers.Main) { viewModel.setSyncStatus("Saving new chapters…", total, total) }
                 val entries = synchronized(totalChaptersMap) { totalChaptersMap.entries.toList() }
                 val writeJobs = LinkedList<Deferred<Boolean>>()
                 entries.forEach { entry ->
@@ -279,11 +287,15 @@ class NewLibraryFragment : BaseFragment() {
         beginSyncing()
         lifecycleScope.launch(Dispatchers.IO) {
             try {
+                withContext(Dispatchers.Main) { viewModel.setSyncStatus("Refreshing covers — clearing cache…") }
                 try { Glide.get(requireContext().applicationContext).clearDiskCache() } catch (e: Exception) {
                     Logs.error(TAG, "refreshCovers: clearDiskCache", e)
                 }
                 val throttle = DomainThrottle()
                 val novels = dbHelper.getAllNovels()
+                val total = novels.size
+                val done = java.util.concurrent.atomic.AtomicInteger(0)
+                withContext(Dispatchers.Main) { viewModel.setSyncStatus("Refreshing covers…", 0, total) }
                 val jobs = LinkedList<Deferred<Boolean>>()
                 novels.forEach { novel ->
                     jobs.add(async {
@@ -298,11 +310,16 @@ class NewLibraryFragment : BaseFragment() {
                         } catch (e: Exception) {
                             Logs.error(TAG, "refreshCovers: ${novel.name}", e)
                         }
+                        val completed = done.incrementAndGet()
+                        withContext(Dispatchers.Main) {
+                            viewModel.setSyncStatus("Refreshing covers — ${novel.name}", completed, total)
+                        }
                         true
                     })
                 }
                 jobs.awaitAll()
                 withContext(Dispatchers.Main) {
+                    viewModel.setSyncStatus("Finishing up…", total, total)
                     activity?.let {
                         try { Glide.get(it.applicationContext).clearMemory() } catch (e: Exception) {
                             Logs.error(TAG, "refreshCovers: clearMemory", e)

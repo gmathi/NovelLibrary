@@ -57,6 +57,11 @@ data class NewLibraryUiState(
     val isRefreshing: Boolean = false,
     /** True while a full-library sync or cover-refresh is running (hides the sync action). */
     val syncing: Boolean = false,
+    /** Human-readable status of the running sync/refresh (e.g. "Refreshing covers…"), or null. */
+    val syncStatus: String? = null,
+    /** Progress of the running sync/refresh as done/total; total 0 means indeterminate. */
+    val syncDone: Int = 0,
+    val syncTotal: Int = 0,
     /** Novels after filter + sort, ready to render. */
     val novels: List<Novel> = emptyList(),
     /** All tags with their novel counts, for the filter bar / assignment dialogs. */
@@ -85,7 +90,18 @@ class NewLibraryViewModel : ViewModel() {
 
     /** Set by the host while a full-library sync / cover-refresh runs, so the top bar can react. */
     fun setSyncing(syncing: Boolean) {
-        _uiState.value = _uiState.value.copy(syncing = syncing)
+        _uiState.value = if (syncing) {
+            _uiState.value.copy(syncing = true)
+        } else {
+            // Clear the non-blocking status line when the operation ends.
+            _uiState.value.copy(syncing = false, syncStatus = null, syncDone = 0, syncTotal = 0)
+        }
+    }
+
+    /** Update the non-blocking status line for a running sync/refresh. Pass total=0 for an
+     *  indeterminate phase (e.g. clearing the cache before counts are known). */
+    fun setSyncStatus(status: String?, done: Int = 0, total: Int = 0) {
+        _uiState.value = _uiState.value.copy(syncStatus = status, syncDone = done, syncTotal = total)
     }
 
     fun load(isRefresh: Boolean = false) {

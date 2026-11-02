@@ -107,6 +107,13 @@ fun NewLibraryScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
+            SyncStatusBar(
+                visible = isSyncing,
+                status = state.syncStatus,
+                done = state.syncDone,
+                total = state.syncTotal
+            )
+
             TagFilterBar(
                 tags = state.tags,
                 selected = state.selectedTagIds,
@@ -186,6 +193,61 @@ fun NewLibraryScreen(
             onCreateAndApply = { name -> viewModel.createAndApplyTag(novel.id, name) },
             onDismiss = { assignTagsFor = null }
         )
+    }
+}
+
+/**
+ * A thin, non-blocking status strip shown below the top bar while a sync / cover-refresh runs.
+ * It overlays nothing and sits above the (still fully interactive) grid, so the user can keep
+ * browsing while covers refresh in the background. Shows what is being refreshed and a
+ * determinate bar (done/total) once counts are known, falling back to an indeterminate bar.
+ */
+@Composable
+private fun SyncStatusBar(
+    visible: Boolean,
+    status: String?,
+    done: Int,
+    total: Int
+) {
+    if (!visible) return
+    Column(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surfaceVariant)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Text(
+                text = status ?: "Working…",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+            if (total > 0) {
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    text = "$done/$total",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+        Spacer(Modifier.height(4.dp))
+        if (total > 0) {
+            val fraction = (done.toFloat() / total).coerceIn(0f, 1f)
+            LinearProgressIndicator(
+                progress = { fraction },
+                modifier = Modifier.fillMaxWidth()
+            )
+        } else {
+            LinearProgressIndicator(modifier = Modifier.fillMaxWidth())
+        }
     }
 }
 
