@@ -40,9 +40,73 @@ object Changelog {
 
         ChangelogVersion(
             version = "2.4.1",
-            date = "Oct 2026",
-            headline = "Storage-migration and backup data-safety fixes, plus a font-picker crash fix.",
+            date = "Nov 2026",
+            headline = "A redesigned tag-based library, more ways to act on chapters, and storage/backup data-safety fixes.",
             changes = listOf(
+                ChangelogChange(
+                    emoji = "🏷️",
+                    title = "New tag-based library experience",
+                    detail = "An optional redesigned library built on tags instead of fixed " +
+                        "sections. Filter by one or many tags (Any/All), sort by 12 options, and " +
+                        "manage tags — create, rename, recolour and delete — from a dedicated " +
+                        "Library Tags screen. Your existing sections are migrated to coloured " +
+                        "tags automatically, and the classic library stays available: toggle it " +
+                        "from Settings → Appearance → General.",
+                    major = true,
+                ),
+                ChangelogChange(
+                    emoji = "🔲",
+                    title = "Adjustable library grid",
+                    detail = "Choose how many cover columns the library grid shows (1–4, default " +
+                        "2) from Settings → Appearance. The sort popup is now a pair of compact " +
+                        "dropdowns, and covers refresh with a non-blocking progress strip so you " +
+                        "can keep browsing while a sync runs.",
+                ),
+                ChangelogChange(
+                    emoji = "📤",
+                    title = "Share a link to add it to your library",
+                    detail = "Share a supported novel URL to NovelLibrary and it opens that " +
+                        "novel's details ready to add.",
+                ),
+                ChangelogChange(
+                    emoji = "🖼️",
+                    title = "Refresh library covers",
+                    detail = "A new action re-fetches every cover image, clearing the cache so " +
+                        "covers update even when the image changed behind an unchanged URL.",
+                ),
+                ChangelogChange(
+                    emoji = "⬇️",
+                    title = "Auto-download new chapters on update",
+                    detail = "Optionally download newly found chapters automatically whenever the " +
+                        "library updates.",
+                    major = true,
+                ),
+                ChangelogChange(
+                    emoji = "👉",
+                    title = "Swipe chapters to act",
+                    detail = "Swipe a chapter right to toggle read/unread, or left to toggle the " +
+                        "bookmark — each with an Undo snackbar.",
+                ),
+                ChangelogChange(
+                    emoji = "🔊",
+                    title = "Volume keys switch chapters at the edges",
+                    detail = "With volume-key scrolling on, volume-up at the top of a chapter " +
+                        "jumps to the previous chapter and volume-down at the bottom jumps to the " +
+                        "next; elsewhere they scroll as before.",
+                ),
+                ChangelogChange(
+                    emoji = "🛡️",
+                    title = "Manual Cloudflare verification where it was missing",
+                    detail = "Novel-details and reader-mode fetches that hit a Cloudflare " +
+                        "challenge now open the manual verification on the correct gated URL " +
+                        "instead of failing silently or opening the wrong site.",
+                ),
+                ChangelogChange(
+                    emoji = "⚡",
+                    title = "Faster library sync",
+                    detail = "Library updates now fetch novels in parallel with per-domain " +
+                        "throttling, so a full sync finishes noticeably faster.",
+                ),
                 ChangelogChange(
                     emoji = "🗂️",
                     title = "Storage migration only moves your novels",
