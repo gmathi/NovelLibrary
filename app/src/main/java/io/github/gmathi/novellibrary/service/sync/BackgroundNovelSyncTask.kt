@@ -18,21 +18,32 @@ import androidx.work.*
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.NavDrawerActivity
 import io.github.gmathi.novellibrary.database.*
+import io.github.gmathi.novellibrary.model.database.Download
 import io.github.gmathi.novellibrary.model.database.Novel
+import io.github.gmathi.novellibrary.model.database.isAutoDownloadEnabled
 import io.github.gmathi.novellibrary.model.database.WebPage
 import io.github.gmathi.novellibrary.model.database.WebPageSettings
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.model.source.SourceManager
 import io.github.gmathi.novellibrary.network.NetworkHelper
+import io.github.gmathi.novellibrary.service.download.DownloadNovelService
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.Utils
 import io.github.gmathi.novellibrary.util.lang.launchUI
+import io.github.gmathi.novellibrary.util.lang.DomainThrottle
+import uy.kohesive.injekt.injectLazy
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
 import java.util.concurrent.TimeUnit
 
 class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
     Worker(context, params) {
+
+    private val dataCenter: DataCenter by injectLazy()
 
     override fun doWork(): Result {
         val dbHelper = DBHelper.getInstance(context)
@@ -62,31 +73,51 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
             val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
             val sourceManager = withContext(Dispatchers.IO) { SourceManager(context) }
             val novels = dbHelper.getAllNovels()
-            novels.forEach { novel ->
-                try {
-                    val newChaptersList = withContext(Dispatchers.IO) { sourceManager.get(novel.sourceId)?.getChapterList(novel) } ?: ArrayList()
-                    var currentChaptersHashCode = (novel.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
-                    if (currentChaptersHashCode == 0)
-                        currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
-                    val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
-                    if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
-                        novel.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
-                        totalCountMap[novel] = newChaptersList.size
-                        totalChaptersMap[novel] = ArrayList(newChaptersList)
+            // Fetch concurrently across domains, throttled per-domain so a single host is not hammered.
+            val throttle = DomainThrottle()
+            val syncedMaps = java.util.Collections.synchronizedList(ArrayList<Triple<Novel, Int, ArrayList<WebPage>>>())
+            coroutineScope {
+                novels.map { novel ->
+                    async(Dispatchers.IO) {
+                        try {
+                            val newChaptersList = throttle.withDomainPermit(novel.url) {
+                                sourceManager.get(novel.sourceId)?.getChapterList(novel)
+                            } ?: ArrayList()
+                            var currentChaptersHashCode = (novel.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
+                            if (currentChaptersHashCode == 0)
+                                currentChaptersHashCode = dbHelper.getAllWebPages(novel.id).sumOf { it.hashCode() }
+                            val newChaptersHashCode = newChaptersList.sumOf { it.hashCode() }
+                            if (newChaptersList.isNotEmpty() && newChaptersHashCode != currentChaptersHashCode) {
+                                novel.metadata[Constants.MetaDataKeys.HASH_CODE] = newChaptersHashCode.toString()
+                                syncedMaps.add(Triple(novel, newChaptersList.size, ArrayList(newChaptersList)))
+                            }
+                        } catch (e: Exception) {
+                            Logs.error(TAG, "Novel: $novel", e)
+                        }
                     }
-                } catch (e: Exception) {
-                    Logs.error(TAG, "Novel: $novel", e)
-                    return@forEach
+                }.awaitAll()
+            }
+
+            synchronized(syncedMaps) {
+                syncedMaps.forEach { (novel, count, chapters) ->
+                    totalCountMap[novel] = count
+                    totalChaptersMap[novel] = chapters
                 }
             }
 
             if (totalCountMap.isEmpty()) return@launchUI
+
+            // Novel ids opted-in to auto-download that had new chapters queued this sync.
+            val autoDownloadNovelIds = HashSet<Long>()
 
             //Update DB with new chapters
             totalChaptersMap.forEach {
                 val novel = it.key
                 val chapters = it.value
                 novel.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
+
+                // Chapters beyond the previously-known count are the new ones (list is order-stable).
+                val oldChaptersCount = novel.chaptersCount.toInt().coerceIn(0, chapters.size)
 
                 dbHelper.writableDatabase.runTransaction { writableDatabase ->
                     dbHelper.updateNovelMetaData(novel, writableDatabase)
@@ -102,8 +133,23 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
                         dbHelper.createWebPage(chapters[i], writableDatabase)
                         dbHelper.createWebPageSettings(WebPageSettings(chapters[i].url, novel.id), writableDatabase)
                     }
+
+                    // Queue the newly-added chapters for download when auto-download is enabled
+                    // globally AND opted-in for this novel.
+                    if (dataCenter.autoDownloadNewChapters && novel.isAutoDownloadEnabled() && chapters.size > oldChaptersCount) {
+                        val newChapters = chapters.subList(oldChaptersCount, chapters.size)
+                        newChapters.forEach { webPage ->
+                            val download = Download(webPage.url, novel.name, novel.id, webPage.chapterName)
+                            download.orderId = webPage.orderId.toInt()
+                            dbHelper.createDownload(download, writableDatabase)
+                        }
+                        autoDownloadNovelIds.add(novel.id)
+                    }
                 }
             }
+
+            // Kick off the download service for every novel that had new chapters queued above.
+            autoDownloadNovelIds.forEach { novelId -> startAutoDownload(novelId) }
 
             val novelsList: ArrayList<Novel> = ArrayList()
             totalCountMap.forEach {
@@ -134,6 +180,17 @@ class BackgroundNovelSyncTask(val context: Context, params: WorkerParameters) :
     }
 
 //region Helper Methods
+
+    /** Launch (or notify) the download service to process the chapters just queued for this novel. */
+    private fun startAutoDownload(novelId: Long) {
+        try {
+            val serviceIntent = Intent(context, DownloadNovelService::class.java)
+            serviceIntent.putExtra(DownloadNovelService.NOVEL_ID, novelId)
+            ContextCompat.startForegroundService(context, serviceIntent)
+        } catch (e: Exception) {
+            Logs.error(TAG, "Failed to start auto-download for novel $novelId", e)
+        }
+    }
 
     companion object {
 

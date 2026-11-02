@@ -156,7 +156,18 @@ class StorageSettingsActivity : BaseActivity(), GenericAdapter.Listener<StorageO
         when (result) {
             is StorageMigrator.MigrationResult.Success -> {
                 refreshOptions()
-                Toast.makeText(this, getString(R.string.storage_migration_success, target.label), Toast.LENGTH_LONG).show()
+                if (result.skippedDirs > 0) {
+                    AlertDialog.Builder(this)
+                        .setTitle(R.string.alert)
+                        .setMessage(
+                            getString(R.string.storage_migration_success, target.label) +
+                                getString(R.string.storage_migration_skipped_note, result.skippedDirs)
+                        )
+                        .setPositiveButton(R.string.okay, null)
+                        .show()
+                } else {
+                    Toast.makeText(this, getString(R.string.storage_migration_success, target.label), Toast.LENGTH_LONG).show()
+                }
             }
 
             is StorageMigrator.MigrationResult.InsufficientSpace -> {
@@ -175,9 +186,13 @@ class StorageSettingsActivity : BaseActivity(), GenericAdapter.Listener<StorageO
 
             is StorageMigrator.MigrationResult.PartialFailure -> {
                 refreshOptions()
+                val base = getString(R.string.storage_migration_partial_failure, result.movedFiles, result.failedFiles)
+                val message = if (result.skippedDirs > 0)
+                    base + getString(R.string.storage_migration_skipped_note, result.skippedDirs)
+                else base
                 AlertDialog.Builder(this)
                     .setTitle(R.string.alert)
-                    .setMessage(getString(R.string.storage_migration_partial_failure, result.movedFiles, result.failedFiles))
+                    .setMessage(message)
                     .setPositiveButton(R.string.okay, null)
                     .show()
             }

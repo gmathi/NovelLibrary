@@ -19,12 +19,12 @@ import io.github.gmathi.novellibrary.database.getAllNovelSections
 import io.github.gmathi.novellibrary.database.getAllNovels
 import io.github.gmathi.novellibrary.util.Constants.DATABASES_DIR
 import io.github.gmathi.novellibrary.util.Constants.DATA_SUBFOLDER
-import io.github.gmathi.novellibrary.util.Constants.FILES_DIR
 import io.github.gmathi.novellibrary.util.Constants.SHARED_PREFS_DIR
 import io.github.gmathi.novellibrary.util.Constants.SIMPLE_NOVEL_BACKUP_FILE_NAME
 import io.github.gmathi.novellibrary.util.Constants.WORK_KEY_RESULT
 import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Utils
+import io.github.gmathi.novellibrary.util.storage.StorageLocationResolver
 import io.github.gmathi.novellibrary.util.storage.notNullAndExists
 import io.github.gmathi.novellibrary.util.system.NotificationReceiver
 import io.github.gmathi.novellibrary.util.view.ProgressNotificationManager
@@ -115,7 +115,13 @@ internal class BackupWorker(context: Context, workerParameters: WorkerParameters
 
             val currentDBsDir = File(baseDir, DATABASES_DIR)
             val currentSharedPrefsDir = File(baseDir, SHARED_PREFS_DIR)
-            val currentFilesDir = File(baseDir, FILES_DIR)
+            // The internal files/ dir under /data/data/<pkg>/ only holds downloaded chapters when
+            // the active storage location is Internal. Once the user moves downloads to the SD
+            // card, chapters live under the SD app-specific dir, and backing up the internal
+            // files/ dir silently captures none of them (#277). Resolve the ACTIVE download root
+            // so "backup with chapters" always contains the chapters wherever they actually are.
+            val activeFilesDir = StorageLocationResolver.resolveWritableRoot(applicationContext, dataCenter).root
+            val currentFilesDir = activeFilesDir
 
             try {
                 val uri: Uri? = Uri.parse(inputData.getString(KEY_URI))

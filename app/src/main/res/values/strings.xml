@@ -119,6 +119,7 @@
         <item>@string/auto_app_update</item>
         <item>@string/download_storage_location</item>
         <item>@string/clear_cloudflare_cookies</item>
+        <item>@string/auto_download_new_chapters</item>
     </string-array>
 
     <string-array name="general_subtitles_list" translatable="false">
@@ -135,6 +136,7 @@
         <item>@string/auto_app_update_description</item>
         <item>@string/download_storage_location_description</item>
         <item>@string/clear_cloudflare_cookies_description</item>
+        <item>@string/auto_download_new_chapters_description</item>
     </string-array>
 
     <string-array name="dns_over_https_list" translatable="false">
@@ -275,8 +277,17 @@
 
     <string name="action_settings">Settings</string>
     <string name="action_sync">Sync for updates</string>
+    <string name="action_refresh_covers">Refresh covers</string>
+    <string name="refresh_covers_in_progress">Refreshing covers</string>
+    <string name="refresh_covers_fetching">Refreshing cover: %1$s\nChecking: %2$d/%3$d</string>
     <string name="action_favourite">Favourite</string>
     <string name="action_bookmark">Bookmark</string>
+
+    <string name="chapter_marked_read">Marked as read</string>
+    <string name="chapter_marked_unread">Marked as unread</string>
+    <string name="chapter_bookmark_set">Bookmark set</string>
+    <string name="chapter_bookmark_cleared">Bookmark cleared</string>
+    <string name="undo">Undo</string>
 
 
     <string name="title_library">Library</string>
@@ -436,6 +447,7 @@
     <string name="storage_migration_success">Downloads moved to %1$s</string>
     <string name="storage_migration_insufficient_space">Not enough free space at the destination. Needed %1$s, only %2$s available.</string>
     <string name="storage_migration_partial_failure">Some files could not be moved (%1$d moved, %2$d failed). Unmoved chapters remain accessible at the previous location.</string>
+    <string name="storage_migration_skipped_note">\n\n%1$d non-novel folder(s) (e.g. voice models, app data) were left in place at the previous location and not moved.</string>
 
     <!-- v0.5 Strings -->
 
@@ -723,6 +735,9 @@
     <string name="information_webview_outdated">Please update the WebView app for better compatibility</string>
 
     <string name="source_not_installed">Source not installed: %1$s</string>
+    <string name="shared_url_unsupported_source">This site isn\'t a supported novel source.</string>
+    <string name="shared_url_invalid">No valid novel link was shared.</string>
+    <string name="importing_title">Importing</string>
 
     <string name="show_chapters_left_badge">Show remaining chapters in badge</string>
     <string name="show_chapters_left_badge_description">
@@ -886,6 +901,13 @@
 
     <string name="auto_app_update">Auto App Update</string>
     <string name="auto_app_update_description">Automatically check for and download app updates on launch</string>
+
+    <string name="auto_download_new_chapters">Auto-Download New Chapters</string>
+    <string name="auto_download_new_chapters_description">When a library update finds new chapters, automatically queue them for download (only for novels you enable it on)</string>
+    <string name="auto_download_this_novel">Auto-download new chapters</string>
+    <string name="auto_download_enabled_toast">Auto-download enabled for this novel</string>
+    <string name="auto_download_disabled_toast">Auto-download disabled for this novel</string>
+    <string name="auto_download_needs_global_toast">Enable \"Auto-Download New Chapters\" in Settings to use this</string>
 
     <string name="night_mode">Night Mode</string>
     <string name="night_mode_description">Switch between day and night appearance for the app</string>

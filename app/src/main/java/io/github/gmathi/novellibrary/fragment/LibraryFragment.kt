@@ -40,6 +40,7 @@ import io.github.gmathi.novellibrary.model.source.online.NovelUpdatesSource
 import io.github.gmathi.novellibrary.util.*
 import io.github.gmathi.novellibrary.util.logging.Logs
 import io.github.gmathi.novellibrary.util.lang.getGlideUrl
+import io.github.gmathi.novellibrary.util.lang.DomainThrottle
 import io.github.gmathi.novellibrary.util.system.*
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchHelperCallback
 import io.github.gmathi.novellibrary.util.view.SimpleItemTouchListener
@@ -326,8 +327,10 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
     }
 
     override fun onPrepareOptionsMenu(menu: Menu) {
-        if (activity != null)
+        if (activity != null) {
             menu.getItem(0).isVisible = (syncSnackBar == null)
+            menu.findItem(R.id.action_refresh_covers)?.isVisible = (syncSnackBar == null)
+        }
         super.onPrepareOptionsMenu(menu)
     }
 
@@ -338,6 +341,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             R.id.action_sync -> {
                 if (networkHelper.isConnectedToNetwork())
                     syncNovels()
+                else {
+                    showAlertDialog(message = getString(R.string.no_internet))
+                }
+                return true
+            }
+            R.id.action_refresh_covers -> {
+                if (networkHelper.isConnectedToNetwork())
+                    refreshCovers()
                 else {
                     showAlertDialog(message = getString(R.string.no_internet))
                 }
@@ -432,9 +443,12 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
             if (activity == null) return@syncing
             snackBarView(SnackBarStatus.Initialize, message = getString(R.string.sync_in_progress) + " - " + getString(R.string.please_wait))
 
-            var counter = 0
+            val counter = java.util.concurrent.atomic.AtomicInteger(0)
             val waitList = LinkedList<Deferred<Boolean>>()
-            val totalChaptersMap: HashMap<Novel, ArrayList<WebPage>> = HashMap()
+            // Fetches run concurrently across domains but are throttled per-domain so a single host
+            // is not hammered; totalChaptersMap is written from multiple coroutines, so synchronize it.
+            val throttle = DomainThrottle()
+            val totalChaptersMap: MutableMap<Novel, ArrayList<WebPage>> = java.util.Collections.synchronizedMap(HashMap())
             val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
             snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.count())
 
@@ -442,12 +456,14 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                 waitList.add(async {
                     try {
 
-                        val newChaptersList = withContext(Dispatchers.IO) {
-                            val source = sourceManager.get(it.sourceId)
-                            if (source is NovelUpdatesSource)
-                                source.getUnsortedChapterList(it)
-                            else
-                                source?.getChapterList(it)
+                        val newChaptersList = throttle.withDomainPermit(it.url) {
+                            withContext(Dispatchers.IO) {
+                                val source = sourceManager.get(it.sourceId)
+                                if (source is NovelUpdatesSource)
+                                    source.getUnsortedChapterList(it)
+                                else
+                                    source?.getChapterList(it)
+                            }
                         } ?: ArrayList()
                         var currentChaptersHashCode = (it.metadata[Constants.MetaDataKeys.HASH_CODE] ?: "0").toInt()
                         if (currentChaptersHashCode == 0)
@@ -458,8 +474,9 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
                             totalChaptersMap[it] = ArrayList(newChaptersList)
                         }
 
-                        val message = getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - counter++))
-                        snackBarView(SnackBarStatus.Update, message = message, progress = counter)
+                        val done = counter.incrementAndGet()
+                        val message = getString(R.string.sync_done_fetching_chapters, it.name, (novels.count() - done))
+                        snackBarView(SnackBarStatus.Update, message = message, progress = done)
 
                     } catch (e: Exception) {
                         Logs.error(TAG, "Novel: $it", e)
@@ -472,16 +489,18 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             //Update DB with new chapters
             waitList.clear()
-            counter = 0
+            counter.set(0)
             snackBarView(SnackBarStatus.MaxProgress, maxProgress = totalChaptersMap.count())
 
-            totalChaptersMap.forEach {
+            // Snapshot entries for safe iteration of the synchronized map.
+            val chapterEntries = synchronized(totalChaptersMap) { totalChaptersMap.entries.toList() }
+            chapterEntries.forEach {
                 val novelToUpdate = it.key
                 var chapters = it.value
-                counter++
+                val position = counter.incrementAndGet()
 
-                val message = getString(R.string.sync_fetching_chapter_list, counter, totalChaptersMap.count(), novelToUpdate.name)
-                snackBarView(SnackBarStatus.Update, message = message, progress = counter)
+                val message = getString(R.string.sync_fetching_chapter_list, position, chapterEntries.count(), novelToUpdate.name)
+                snackBarView(SnackBarStatus.Update, message = message, progress = position)
 
                 // We re-fetch the chapters in-case of NovelUpdates so that we also retrieve the translator information.
                 novelToUpdate.metadata[Constants.MetaDataKeys.LAST_UPDATED_DATE] = Utils.getCurrentFormattedDate()
@@ -526,6 +545,70 @@ class LibraryFragment : BaseFragment(), GenericAdapter.Listener<Novel>, SimpleIt
 
             waitList.awaitAll()
             snackBarView(SnackBarStatus.Dismiss)
+        }
+    }
+
+    /**
+     * Manually re-fetches each library novel's details to pick up a changed cover URL, then clears
+     * the Glide image caches so covers that changed remotely (even behind an unchanged URL) or
+     * previously failed to load are re-downloaded on the next bind. Kept separate from [syncNovels]
+     * (per issue #187 discussion) so a cover refresh does not add load to the chapter sync.
+     */
+    private fun refreshCovers(novel: Novel? = null) {
+        lifecycleScope.launch(Dispatchers.IO) refreshing@{
+            if (activity == null) return@refreshing
+            snackBarView(SnackBarStatus.Initialize, message = getString(R.string.refresh_covers_in_progress) + " - " + getString(R.string.please_wait))
+
+            val novels = if (novel == null) dbHelper.getAllNovels(novelSectionId) else listOf(novel)
+            snackBarView(SnackBarStatus.MaxProgress, maxProgress = novels.count())
+
+            // Disk cache must be cleared off the main thread; do it once up front so the subsequent
+            // re-binds re-fetch instead of serving a stale cached image for an unchanged URL.
+            try {
+                Glide.get(requireContext().applicationContext).clearDiskCache()
+            } catch (e: Exception) {
+                Logs.error(TAG, "refreshCovers: clearDiskCache", e)
+            }
+
+            val throttle = DomainThrottle()
+            val waitList = LinkedList<Deferred<Boolean>>()
+            val counter = java.util.concurrent.atomic.AtomicInteger(0)
+
+            novels.forEach { libraryNovel ->
+                waitList.add(async {
+                    try {
+                        val source = sourceManager.get(libraryNovel.sourceId)
+                        if (source != null) {
+                            val fetched = throttle.withDomainPermit(libraryNovel.url) {
+                                withContext(Dispatchers.IO) { source.getNovelDetails(libraryNovel) }
+                            }
+                            // getNovelDetails returns the same novel instance with fresh details
+                            // (including a possibly-updated imageUrl); persist it to keep the id.
+                            if (fetched != null && fetched.id != -1L) {
+                                dbHelper.updateNovel(fetched)
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Logs.error(TAG, "refreshCovers: ${libraryNovel.name}", e)
+                    }
+                    val done = counter.incrementAndGet()
+                    val message = getString(R.string.refresh_covers_fetching, libraryNovel.name, done, novels.count())
+                    snackBarView(SnackBarStatus.Update, message = message, progress = done)
+                    true
+                })
+            }
+
+            waitList.awaitAll()
+
+            withContext(Dispatchers.Main) {
+                // Memory cache must be cleared on the main thread.
+                activity?.let {
+                    try { Glide.get(it.applicationContext).clearMemory() } catch (e: Exception) { Logs.error(TAG, "refreshCovers: clearMemory", e) }
+                }
+            }
+
+            snackBarView(SnackBarStatus.Dismiss)
+            setData()
         }
     }
 

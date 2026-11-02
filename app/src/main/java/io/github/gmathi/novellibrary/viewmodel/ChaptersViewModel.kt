@@ -404,6 +404,40 @@ class ChaptersViewModel(private val state: SavedStateHandle) : ViewModel(), Defa
         }
     }
 
+    /**
+     * Toggle the read/unread flag for a single chapter off the main thread (swipe action, #199).
+     * Reloads [chapterSettings] from the DB, then invokes [onComplete] on the main thread.
+     */
+    fun toggleChapterReadStatus(webPage: WebPage, markRead: Boolean, onComplete: (() -> Unit)? = null) {
+        if (novel.id == -1L) return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                val webPageSettings = chapterSettings?.firstOrNull { it.url == webPage.url }
+                    ?: dbHelper.getWebPageSettings(webPage.url) ?: return@withContext
+                dbHelper.updateWebPageSettingsReadStatus(webPageSettings, markRead)
+            }
+            chapterSettings = withContext(Dispatchers.IO) { dbHelper.getAllWebPageSettings(novel.id) }
+            onComplete?.invoke()
+        }
+    }
+
+    /**
+     * Set or clear the novel bookmark off the main thread (swipe action, #200). Updates the DB
+     * and the VM's own Novel instance so every source tab sees the change, then invokes
+     * [onComplete] on the main thread.
+     */
+    fun setBookmark(currentChapterUrl: String?, onComplete: (() -> Unit)? = null) {
+        if (novel.id == -1L) return
+        viewModelScope.launch {
+            withContext(Dispatchers.IO) {
+                dbHelper.updateBookmarkCurrentWebPageUrl(novel.id, currentChapterUrl)
+            }
+            novel.currentChapterUrl = currentChapterUrl
+            setNovel(novel)
+            onComplete?.invoke()
+        }
+    }
+
     override fun onResume(owner: LifecycleOwner) {
         getData()
     }

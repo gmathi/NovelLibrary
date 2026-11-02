@@ -15,8 +15,9 @@ object DBKeys {
     internal const val VER_SOURCES_REFACTOR = 10
 
     internal const val VER_ROOM_MIGRATION = 11
+    internal const val VER_NOVEL_TAGS = 12
 
-    internal const val DATABASE_VERSION = VER_ROOM_MIGRATION
+    internal const val DATABASE_VERSION = VER_NOVEL_TAGS
 
     internal const val DATABASE_NAME = "bnr_db"
 
@@ -37,9 +38,14 @@ object DBKeys {
     internal const val TABLE_NOVEL_SECTION = "novel_section"
     internal const val TABLE_LARGE_PREFERENCE = "large_preference"
 
+    internal const val TABLE_NOVEL_TAG = "novel_tag"
+    internal const val TABLE_NOVEL_TAG_CROSS_REF = "novel_tag_cross_ref"
+
     //Index names
     internal const val INDEX_WEB_PAGE = "web_page_url_novel_id_index"
     internal const val INDEX_WEB_PAGE_SETTINGS = "web_page_settings_url_index"
+    internal const val INDEX_NOVEL_TAG_NAME = "novel_tag_name_index"
+    internal const val INDEX_NOVEL_TAG_CROSS_REF_TAG = "novel_tag_cross_ref_tag_id_index"
 
     // Common column names
     internal const val KEY_ID = "id"
@@ -75,6 +81,10 @@ object DBKeys {
 
     // Table novel_genre columns
     internal const val KEY_GENRE_ID = "genre_id"
+
+    // Table novel_tag columns
+    internal const val KEY_COLOR = "color"
+    internal const val KEY_TAG_ID = "tag_id"
 
     //Table download_queue columns
     internal const val KEY_STATUS = "status"
@@ -188,6 +198,33 @@ object DBKeys {
                     + KEY_NAME + " TEXT PRIMARY KEY, "
                     + KEY_VALUE + " TEXT"
                     + ")")
+
+    // novel_tag table create statement.
+    // Mirrors Room's generated schema for NovelTag: autoGenerate PK + NOT NULL name/order_id,
+    // nullable color. Kept byte-identical in intent so Room's schema validation passes.
+    internal const val CREATE_TABLE_NOVEL_TAG = (
+            "CREATE TABLE IF NOT EXISTS " + TABLE_NOVEL_TAG + " ("
+                    + KEY_ID + " INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, "
+                    + KEY_NAME + " TEXT NOT NULL, "
+                    + KEY_COLOR + " INTEGER, "
+                    + KEY_ORDER_ID + " INTEGER NOT NULL"
+                    + ")")
+
+    // novel_tag_cross_ref table create statement (many-to-many novel<->tag).
+    internal const val CREATE_TABLE_NOVEL_TAG_CROSS_REF = (
+            "CREATE TABLE IF NOT EXISTS " + TABLE_NOVEL_TAG_CROSS_REF + " ("
+                    + KEY_NOVEL_ID + " INTEGER NOT NULL, "
+                    + KEY_TAG_ID + " INTEGER NOT NULL, "
+                    + "PRIMARY KEY(" + KEY_NOVEL_ID + ", " + KEY_TAG_ID + ")"
+                    + ")")
+
+    internal const val CREATE_INDEX_NOVEL_TAG_NAME = (
+            "CREATE UNIQUE INDEX IF NOT EXISTS $INDEX_NOVEL_TAG_NAME ON $TABLE_NOVEL_TAG($KEY_NAME)"
+            )
+
+    internal const val CREATE_INDEX_NOVEL_TAG_CROSS_REF_TAG = (
+            "CREATE INDEX IF NOT EXISTS $INDEX_NOVEL_TAG_CROSS_REF_TAG ON $TABLE_NOVEL_TAG_CROSS_REF($KEY_TAG_ID)"
+            )
 
 
     // web_page index statement

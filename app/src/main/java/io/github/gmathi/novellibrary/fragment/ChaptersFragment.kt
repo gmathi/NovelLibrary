@@ -1,13 +1,19 @@
 package io.github.gmathi.novellibrary.fragment
 
 import android.annotation.SuppressLint
+import android.graphics.Canvas
+import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.os.Parcelable
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.CompoundButton
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.DividerItemDecoration
+import androidx.recyclerview.widget.ItemTouchHelper
+import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ChaptersPagerActivity
 import io.github.gmathi.novellibrary.adapter.GenericAdapterSelectTitleProvider
@@ -79,6 +85,119 @@ class ChaptersFragment : BaseFragment(),
         binding.recyclerView.setDefaultsNoAnimation(adapter)
         this.context?.let { binding.recyclerView.addItemDecoration(CustomDividerItemDecoration(it, DividerItemDecoration.VERTICAL)) }
         binding.swipeRefreshLayout.isEnabled = false
+        attachSwipeActions()
+    }
+
+    /**
+     * Swipe-to-act on chapter rows (issues #199, #200):
+     *  - Swipe RIGHT (start -> end): toggle this chapter's read/unread state.
+     *  - Swipe LEFT  (end -> start): toggle the novel bookmark on this chapter.
+     * The swiped row is never dismissed; it snaps back and rebinds to show the new state.
+     * Disabled while a selection action-mode is active to avoid conflicting with multi-select.
+     */
+    private fun attachSwipeActions() {
+        val ctx = context ?: return
+        val readBg = ColorDrawable(ContextCompat.getColor(ctx, R.color.DarkGreen))
+        val bookmarkBg = ColorDrawable(ContextCompat.getColor(ctx, R.color.Orange))
+        val readIcon = ContextCompat.getDrawable(ctx, R.drawable.ic_check_circle_white_vector)
+        val bookmarkIcon = ContextCompat.getDrawable(ctx, R.drawable.ic_bookmark_orange_vector)
+
+        val callback = object : ItemTouchHelper.SimpleCallback(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
+            override fun onMove(rv: RecyclerView, vh: RecyclerView.ViewHolder, t: RecyclerView.ViewHolder) = false
+
+            override fun getSwipeDirs(rv: RecyclerView, vh: RecyclerView.ViewHolder): Int {
+                // Don't allow swipe while the novel isn't in the library (no persisted state)
+                // or while a multi-select action mode is active.
+                if (novel.id == -1L) return 0
+                if ((activity as? ChaptersPagerActivity)?.dataSet?.isNotEmpty() == true) return 0
+                return super.getSwipeDirs(rv, vh)
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
+                val position = viewHolder.adapterPosition
+                if (position == RecyclerView.NO_POSITION) return
+                when (direction) {
+                    ItemTouchHelper.RIGHT -> toggleReadStatus(position)
+                    ItemTouchHelper.LEFT -> toggleBookmark(position)
+                }
+            }
+
+            override fun onChildDraw(
+                c: Canvas, rv: RecyclerView, vh: RecyclerView.ViewHolder,
+                dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean
+            ) {
+                val itemView = vh.itemView
+                val iconMargin = (itemView.height - (readIcon?.intrinsicHeight ?: 0)) / 2
+                when {
+                    dX > 0 -> { // swipe right -> read toggle
+                        readBg.setBounds(itemView.left, itemView.top, itemView.left + dX.toInt(), itemView.bottom)
+                        readBg.draw(c)
+                        readIcon?.let {
+                            val top = itemView.top + (itemView.height - it.intrinsicHeight) / 2
+                            it.setBounds(itemView.left + iconMargin, top, itemView.left + iconMargin + it.intrinsicWidth, top + it.intrinsicHeight)
+                            it.draw(c)
+                        }
+                    }
+                    dX < 0 -> { // swipe left -> bookmark toggle
+                        bookmarkBg.setBounds(itemView.right + dX.toInt(), itemView.top, itemView.right, itemView.bottom)
+                        bookmarkBg.draw(c)
+                        bookmarkIcon?.let {
+                            val top = itemView.top + (itemView.height - it.intrinsicHeight) / 2
+                            it.setBounds(itemView.right - iconMargin - it.intrinsicWidth, top, itemView.right - iconMargin, top + it.intrinsicHeight)
+                            it.draw(c)
+                        }
+                    }
+                }
+                super.onChildDraw(c, rv, vh, dX, dY, actionState, isCurrentlyActive)
+            }
+        }
+        ItemTouchHelper(callback).attachToRecyclerView(binding.recyclerView)
+    }
+
+    /** Toggle read/unread for the chapter at [position] and rebind. (#199) */
+    private fun toggleReadStatus(position: Int) {
+        val webPage = adapter.items.getOrNull(position) ?: return
+        val activity = (activity as? ChaptersPagerActivity) ?: return
+        val currentlyRead = activity.vm.chapterSettings?.firstOrNull { it.url == webPage.url }?.isRead ?: return
+        val newRead = !currentlyRead
+        activity.vm.toggleChapterReadStatus(webPage, newRead) {
+            adapter.notifyItemChanged(adapter.items.indexOf(webPage))
+        }
+        showSwipeSnackbar(
+            if (newRead) R.string.chapter_marked_read else R.string.chapter_marked_unread
+        ) {
+            activity.vm.toggleChapterReadStatus(webPage, currentlyRead) {
+                adapter.notifyItemChanged(adapter.items.indexOf(webPage))
+            }
+        }
+    }
+
+    /** Toggle the novel bookmark on the chapter at [position] and rebind all tabs. (#200) */
+    private fun toggleBookmark(position: Int) {
+        val webPage = adapter.items.getOrNull(position) ?: return
+        val activity = (activity as? ChaptersPagerActivity) ?: return
+        val previousBookmark = novel.currentChapterUrl
+        val wasBookmarked = previousBookmark == webPage.url
+        val newBookmark = if (wasBookmarked) null else webPage.url
+        activity.vm.setBookmark(newBookmark) {
+            novel.currentChapterUrl = newBookmark
+            // Rebind every source tab so the moved bookmark marker updates everywhere.
+            EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+        }
+        showSwipeSnackbar(
+            if (wasBookmarked) R.string.chapter_bookmark_cleared else R.string.chapter_bookmark_set
+        ) {
+            activity.vm.setBookmark(previousBookmark) {
+                novel.currentChapterUrl = previousBookmark
+                EventBus.getDefault().post(ChapterActionModeEvent(eventType = EventType.COMPLETE))
+            }
+        }
+    }
+
+    private fun showSwipeSnackbar(messageRes: Int, undoAction: () -> Unit) {
+        Snackbar.make(binding.recyclerView, messageRes, Snackbar.LENGTH_LONG)
+            .setAction(R.string.undo) { undoAction() }
+            .show()
     }
 
     private fun setData(shouldScrollToBookmark: Boolean = true, shouldScrollToFirstUnread: Boolean = true) {
@@ -231,6 +350,11 @@ class ChaptersFragment : BaseFragment(),
     @Subscribe(threadMode = ThreadMode.MAIN)
     fun onChapterActionModeEvent(chapterActionModeEvent: ChapterActionModeEvent) {
         if (chapterActionModeEvent.eventType == EventType.COMPLETE || (chapterActionModeEvent.eventType == EventType.UPDATE && (chapterActionModeEvent.translatorSourceName == translatorSourceName || translatorSourceName == ALL_TRANSLATOR_SOURCES))) {
+            // Pick up a bookmark change made on another source tab (swipe #200), since each
+            // tab holds its own Novel copy while the VM holds the source of truth.
+            (activity as? ChaptersPagerActivity)?.vm?.novel?.let {
+                novel.currentChapterUrl = it.currentChapterUrl
+            }
             lastKnownRecyclerState = binding.recyclerView.layoutManager?.onSaveInstanceState()
             setData()
             return

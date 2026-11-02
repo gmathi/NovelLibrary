@@ -9,6 +9,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -48,13 +49,15 @@ class NewSettingsActivity : ComponentActivity() {
     private val dataCenter: DataCenter by injectLazy()
     private val networkHelper: NetworkHelper by injectLazy()
 
-    private enum class Screen { ROOT, APPEARANCE, NETWORK, STORAGE, TTS, ABOUT }
+    private enum class Screen { ROOT, APPEARANCE, NETWORK, STORAGE, TTS, ABOUT, TAGS }
 
     // Hoisted state so onResume (returning from a sub-activity) can refresh it.
     private var nightMode by mutableStateOf(false)
     private var scrollingText by mutableStateOf(false)
     private var showChaptersLeftBadge by mutableStateOf(false)
     private var loadLibraryScreen by mutableStateOf(false)
+    private var useNewLibrary by mutableStateOf(true)
+    private var libraryGridColumns by mutableStateOf(2)
     private var enableNotifications by mutableStateOf(false)
     private var dohProviderIndex by mutableStateOf(0)
     private var useAiTts by mutableStateOf(false)
@@ -85,6 +88,7 @@ class NewSettingsActivity : ComponentActivity() {
                         onOpenNetworkPrivacy = { screen = Screen.NETWORK },
                         onOpenStorageBackup = { screen = Screen.STORAGE },
                         onOpenSync = { startActivity(Intent(this, SyncSettingsSelectionActivity::class.java)) },
+                        onOpenLibraryTags = { screen = Screen.TAGS },
                         onOpenAboutHelp = { screen = Screen.ABOUT },
                         onSwitchToClassic = {
                             dataCenter.useNewSettingsUi = false
@@ -98,6 +102,8 @@ class NewSettingsActivity : ComponentActivity() {
                         scrollingText = scrollingText,
                         showChaptersLeftBadge = showChaptersLeftBadge,
                         loadLibraryScreen = loadLibraryScreen,
+                        useNewLibrary = useNewLibrary,
+                        libraryGridColumns = libraryGridColumns,
                         enableNotifications = enableNotifications,
                         onNightModeChange = { value ->
                             nightMode = value
@@ -110,6 +116,8 @@ class NewSettingsActivity : ComponentActivity() {
                         onScrollingTextChange = { value -> scrollingText = value; dataCenter.enableScrollingText = value },
                         onShowChaptersLeftBadgeChange = { value -> showChaptersLeftBadge = value; dataCenter.showChaptersLeftBadge = value },
                         onLoadLibraryScreenChange = { value -> loadLibraryScreen = value; dataCenter.loadLibraryScreen = value },
+                        onUseNewLibraryChange = { value -> useNewLibrary = value; dataCenter.useNewLibrary = value },
+                        onLibraryGridColumnsChange = { value -> libraryGridColumns = value; dataCenter.libraryGridColumns = value },
                         onEnableNotificationsChange = { value ->
                             enableNotifications = value
                             dataCenter.enableNotifications = value
@@ -157,6 +165,21 @@ class NewSettingsActivity : ComponentActivity() {
                         onWhatsChanged = { startActivity(Intent(this, WhatsChangedActivity::class.java)) },
                         onNavigateBack = { screen = Screen.ROOT },
                     )
+
+                    Screen.TAGS -> {
+                        val tagsVm: io.github.gmathi.novellibrary.viewmodel.ManageTagsViewModel =
+                            androidx.lifecycle.viewmodel.compose.viewModel()
+                        androidx.compose.runtime.LaunchedEffect(Unit) { tagsVm.load() }
+                        val tagList by tagsVm.tags.collectAsState()
+                        io.github.gmathi.novellibrary.compose.settings.ManageTagsScreen(
+                            tags = tagList,
+                            onCreate = { name -> tagsVm.create(name) },
+                            onRename = { id, name -> tagsVm.rename(id, name) },
+                            onSetColor = { id, color -> tagsVm.setColor(id, color) },
+                            onDelete = { id -> tagsVm.delete(id) },
+                            onNavigateBack = { screen = Screen.ROOT },
+                        )
+                    }
                 }
             }
         }
@@ -172,6 +195,8 @@ class NewSettingsActivity : ComponentActivity() {
         scrollingText = dataCenter.enableScrollingText
         showChaptersLeftBadge = dataCenter.showChaptersLeftBadge
         loadLibraryScreen = dataCenter.loadLibraryScreen
+        useNewLibrary = dataCenter.useNewLibrary
+        libraryGridColumns = dataCenter.libraryGridColumns
         enableNotifications = dataCenter.enableNotifications
         dohProviderIndex = dataCenter.dohProvider
         useAiTts = dataCenter.useAiTts

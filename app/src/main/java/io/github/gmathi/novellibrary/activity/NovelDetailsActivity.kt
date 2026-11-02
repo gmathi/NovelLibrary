@@ -61,6 +61,13 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
     private var isLoadingDetails = false
 
+    /** True when this screen was opened from a shared/deep-linked URL rather than in-app navigation. */
+    private var fromSharedUrl = false
+
+    /** URL of the fetch that triggered the last Cloudflare challenge; used to open the manual
+     *  resolver on the originating domain and to clear the right host's forced-WebView flag. */
+    private var cloudflareGatedUrl: String? = null
+
     private val cloudflareResolverLauncher = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) { result ->
@@ -69,7 +76,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
                 CloudflareResolverActivity.RESULT_COOKIES_SAVED, false
             ) ?: false
             io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
-                .onManualVerificationComplete("https://${HostNames.NOVEL_UPDATES}", cookiesSaved)
+                .onManualVerificationComplete(cloudflareGatedUrl ?: viewModel.novel.url, cookiesSaved)
             viewModel.onCloudflareResolved()
         }
     }
@@ -84,14 +91,15 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
         setContentView(binding.root)
         contentBinding = binding.contentNovelDetails
 
-        val novel = intent.getParcelableExtraCompat<Novel>("novel") ?: run {
+        val novel = resolveNovelFromIntent() ?: run {
             finish()
             return
         }
 
         setSupportActionBar(binding.toolbar)
         supportActionBar?.setDisplayHomeAsUpEnabled(true)
-        supportActionBar?.title = novel.name
+        supportActionBar?.title =
+            if (fromSharedUrl) getString(R.string.importing_title) else novel.name
 
         viewModel.init(novel)
 
@@ -152,6 +160,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
 
                         is NovelDetailsUiState.CloudflareChallenge -> {
                             isLoadingDetails = false
+                            cloudflareGatedUrl = state.gatedUrl
                             showCloudflareResolverDialog()
                         }
                     }
@@ -412,7 +421,7 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
             title(text = getString(R.string.cloudflare_verification_required))
             message(text = getString(R.string.cloudflare_verification_message))
             positiveButton(text = getString(R.string.resolve_manually)) {
-                val url = "https://${HostNames.NOVEL_UPDATES}"
+                val url = cloudflareGatedUrl ?: "https://${HostNames.NOVEL_UPDATES}"
                 val intent = CloudflareResolverActivity.createIntent(this@NovelDetailsActivity, url)
                 cloudflareResolverLauncher.launch(intent)
             }
@@ -507,6 +516,77 @@ class NovelDetailsActivity : BaseActivity(), TextViewLinkHandler.OnClickListener
     // ------------------------------------------------------------------
     // Helpers
     // ------------------------------------------------------------------
+
+    /**
+     * Resolves the [Novel] to display from the launching intent.
+     *
+     * Three entry paths are supported:
+     *  1. In-app navigation — a parcelled "novel" extra.
+     *  2. Share sheet (ACTION_SEND, text/plain) — a novel's details-page URL shared
+     *     from a browser or another app.
+     *  3. Deep link (ACTION_VIEW) — a novel's details-page URL opened directly.
+     *
+     * For the URL paths the host is mapped to a known source via
+     * [DBHelper.getSourceId]; an unknown host or missing URL shows a toast and
+     * returns null so the caller finishes the activity.
+     */
+    private fun resolveNovelFromIntent(): Novel? {
+        intent.getParcelableExtraCompat<Novel>("novel")?.let { return it }
+
+        if (intent.action == Intent.ACTION_SEND || intent.action == Intent.ACTION_VIEW) {
+            // A VIEW deep link carries a clean URI in intent.data; a SEND share carries
+            // free-form text in EXTRA_TEXT that may wrap the URL in a title/other words.
+            val url = if (intent.action == Intent.ACTION_VIEW)
+                intent.data?.toString()
+            else
+                extractFirstUrl(intent.getStringExtra(Intent.EXTRA_TEXT))
+
+            if (!isValidHttpUrl(url)) {
+                toast(R.string.shared_url_invalid)
+                return null
+            }
+
+            val sourceId = dbHelper.getSourceId(url!!)
+            if (sourceId == 0L) {
+                toast(R.string.shared_url_unsupported_source)
+                return null
+            }
+
+            fromSharedUrl = true
+            return Novel(url, sourceId)
+        }
+
+        return null
+    }
+
+    /** Pulls the first http(s) URL out of shared text, which may carry a title or other words around it. */
+    private fun extractFirstUrl(text: String?): String? {
+        if (text.isNullOrBlank()) return null
+        val matcher = android.util.Patterns.WEB_URL.matcher(text)
+        while (matcher.find()) {
+            val candidate = matcher.group()
+            if (candidate.startsWith("http://", ignoreCase = true) ||
+                candidate.startsWith("https://", ignoreCase = true)
+            ) return candidate
+        }
+        return null
+    }
+
+    /**
+     * A shared value is usable only if it parses as an http(s) URL with a real host.
+     * This also prevents a non-URL string (e.g. "novelupdates.com" embedded in a query
+     * of some unrelated site) from being passed to the substring-based source matcher.
+     */
+    private fun isValidHttpUrl(url: String?): Boolean {
+        if (url.isNullOrBlank()) return false
+        return try {
+            val uri = Uri.parse(url)
+            val scheme = uri.scheme?.lowercase()
+            (scheme == "http" || scheme == "https") && !uri.host.isNullOrBlank()
+        } catch (e: Exception) {
+            false
+        }
+    }
 
     private fun copyToClipboard(label: String, text: String) {
         val clipboard = getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager

@@ -11,12 +11,15 @@ import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.webkit.*
+import androidx.activity.result.ActivityResultLauncher
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.fragment.app.FragmentActivity
 import androidx.lifecycle.lifecycleScope
 import com.google.gson.Gson
 import com.google.gson.reflect.TypeToken
 import io.github.gmathi.novellibrary.R
 import io.github.gmathi.novellibrary.activity.ReaderDBPagerActivity
+import io.github.gmathi.novellibrary.activity.CloudflareResolverActivity
 import io.github.gmathi.novellibrary.cleaner.HtmlCleaner
 import io.github.gmathi.novellibrary.database.getWebPageSettings
 import io.github.gmathi.novellibrary.database.updateWebPageSettings
@@ -30,6 +33,7 @@ import io.github.gmathi.novellibrary.model.other.LinkedPage
 import io.github.gmathi.novellibrary.model.other.ReaderSettingsEvent
 import io.github.gmathi.novellibrary.network.HostNames
 import io.github.gmathi.novellibrary.network.WebPageDocumentFetcher
+import io.github.gmathi.novellibrary.network.cloudflare.CloudflareInterceptor
 import io.github.gmathi.novellibrary.network.cloudflare.CloudflareProgress
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.util.Constants.FILE_PROTOCOL
@@ -60,6 +64,26 @@ class WebPageDBFragment : BaseFragment() {
     var job: Job? = null
 
     private var isLoadingPage: Boolean = false
+
+    /** The gated URL of the fetch that triggered the current Cloudflare challenge, and the
+     *  reader URL to retry once verification succeeds. Both are set when a challenge is
+     *  detected in [downloadWebPage] and consumed by the resolver result callback. */
+    private var cloudflareGatedUrl: String? = null
+    private var cloudflarePendingReloadUrl: String? = null
+
+    private val cloudflareResolverLauncher: ActivityResultLauncher<android.content.Intent> =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == android.app.Activity.RESULT_OK) {
+                val cookiesSaved = result.data?.getBooleanExtra(
+                    CloudflareResolverActivity.RESULT_COOKIES_SAVED, false
+                ) ?: false
+                CloudflareInterceptor.onManualVerificationComplete(
+                    cloudflareGatedUrl ?: cloudflarePendingReloadUrl, cookiesSaved
+                )
+                val retryUrl = cloudflarePendingReloadUrl
+                if (retryUrl != null) downloadWebPage(retryUrl)
+            }
+        }
 
     private lateinit var binding: FragmentReaderBinding
 
@@ -465,6 +489,23 @@ class WebPageDBFragment : BaseFragment() {
 
                 e.printStackTrace()
                 isLoadingPage = false
+
+                // Cloudflare challenge: the network interceptor failed to bypass it and threw a
+                // BYPASS_FAILED exception carrying the gated request URL. Surface the manual
+                // verification resolver on THAT url (e.g. the RoyalRoad chapter), mirroring the
+                // chapters-list / novel-details paths, instead of showing a generic fetch error
+                // that can only re-hit the same challenge.
+                val gatedUrl = CloudflareInterceptor.extractGatedUrl(e)
+                if (gatedUrl != null) {
+                    if (isResumed && !isRemoving && !isDetached) {
+                        cloudflareGatedUrl = gatedUrl
+                        cloudflarePendingReloadUrl = url
+                        val intent = CloudflareResolverActivity.createIntent(requireContext(), gatedUrl)
+                        cloudflareResolverLauncher.launch(intent)
+                    }
+                    return@download
+                }
+
                 if (isResumed && !isRemoving && !isDetached)
                     binding.progressLayout.dataFetchError {
                         downloadWebPage(url)

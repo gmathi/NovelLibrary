@@ -58,9 +58,13 @@ private constructor(private val appContext: Context) : SQLiteOpenHelper(
         db.execSQL(DBKeys.CREATE_TABLE_SOURCE)
         db.execSQL(DBKeys.CREATE_TABLE_NOVEL_SECTION)
         db.execSQL(DBKeys.CREATE_TABLE_LARGE_PREFERENCE)
+        db.execSQL(DBKeys.CREATE_TABLE_NOVEL_TAG)
+        db.execSQL(DBKeys.CREATE_TABLE_NOVEL_TAG_CROSS_REF)
 
         db.execSQL(DBKeys.CREATE_INDEX_WEB_PAGE)
         db.execSQL(DBKeys.CREATE_INDEX_WEB_PAGE_SETTINGS)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_TAG_NAME)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_TAG_CROSS_REF_TAG)
 
         insertDefaultValues(db)
     }
@@ -185,7 +189,137 @@ private constructor(private val appContext: Context) : SQLiteOpenHelper(
 //            //version = DBKeys.VER_SOURCES_REFACTOR
 //        }
 
+        if (version == DBKeys.VER_ROOM_MIGRATION) {
+            migrateSectionsToTags(db)
+            version = DBKeys.VER_NOVEL_TAGS
+        }
 
+
+    }
+
+    /**
+     * Migration 11 -> 12: introduce the tag model.
+     *
+     * Creates `novel_tag` and `novel_tag_cross_ref`, then seeds one tag per existing novel-section
+     * name (including the implicit default section "Currently Reading", id -1L, which has no row in
+     * `novel_section`). Every novel is linked to the tag that matches the section it currently
+     * belongs to. The `novel_section` schema and `novel.novel_section_id` are left untouched so the
+     * legacy library keeps working unchanged — tags coexist with sections rather than replacing the
+     * column.
+     */
+    private fun migrateSectionsToTags(db: SQLiteDatabase) {
+        db.execSQL(DBKeys.CREATE_TABLE_NOVEL_TAG)
+        db.execSQL(DBKeys.CREATE_TABLE_NOVEL_TAG_CROSS_REF)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_TAG_NAME)
+        db.execSQL(DBKeys.CREATE_INDEX_NOVEL_TAG_CROSS_REF_TAG)
+
+        // Idempotency guard: if Room's MIGRATION_11_12 reached the file first it already seeded the
+        // tags, so skip re-seeding (and avoid duplicate-link constraint failures).
+        val countCursor = db.rawQuery("SELECT COUNT(*) FROM ${DBKeys.TABLE_NOVEL_TAG}", null)
+        var existingTags = 0
+        if (countCursor != null) {
+            if (countCursor.moveToFirst()) existingTags = countCursor.getInt(0)
+            countCursor.close()
+        }
+        if (existingTags > 0) return
+
+        // Map every section id (including -1L default) to its display name.
+        val sectionNames = HashMap<Long, String>()
+        sectionNames[-1L] = defaultSectionName()
+        val sectionCursor = db.rawQuery(
+            "SELECT ${DBKeys.KEY_ID}, ${DBKeys.KEY_NAME} FROM ${DBKeys.TABLE_NOVEL_SECTION}", null
+        )
+        if (sectionCursor != null) {
+            if (sectionCursor.moveToFirst()) {
+                do {
+                    val id = sectionCursor.getLong(sectionCursor.getColumnIndex(DBKeys.KEY_ID))
+                    val name = sectionCursor.getString(sectionCursor.getColumnIndex(DBKeys.KEY_NAME))
+                    if (!name.isNullOrBlank()) sectionNames[id] = name
+                } while (sectionCursor.moveToNext())
+            }
+            sectionCursor.close()
+        }
+
+        // Only seed a tag for a section that actually has novels in it, so we don't create empty
+        // tags for sections the user left unused. Collect the sections that are referenced first.
+        val usedSections = HashSet<Long>()
+        val usedCursor = db.rawQuery(
+            "SELECT DISTINCT ${DBKeys.KEY_NOVEL_SECTION_ID} FROM ${DBKeys.TABLE_NOVEL}", null
+        )
+        if (usedCursor != null) {
+            if (usedCursor.moveToFirst()) {
+                do {
+                    usedSections.add(usedCursor.getLong(0))
+                } while (usedCursor.moveToNext())
+            }
+            usedCursor.close()
+        }
+        // Always provide the default tag so a novel pointing at a since-deleted section (orphan)
+        // still gets a home instead of silently losing its organization.
+        if (usedSections.isNotEmpty()) usedSections.add(-1L)
+
+        // Create a tag per used section and remember section-id -> new tag-id.
+        val sectionToTagId = HashMap<Long, Long>()
+        var order = 0L
+        for (sectionId in usedSections) {
+            val name = sectionNames[sectionId] ?: continue
+            val values = ContentValues()
+            values.put(DBKeys.KEY_NAME, name)
+            values.put(DBKeys.KEY_ORDER_ID, order++)
+            // CONFLICT_IGNORE keeps the unique-name index happy if two section ids share a name;
+            // the existing tag id is then looked up below.
+            var tagId = db.insertWithOnConflict(
+                DBKeys.TABLE_NOVEL_TAG, null, values, SQLiteDatabase.CONFLICT_IGNORE
+            )
+            if (tagId == -1L) {
+                val c = db.rawQuery(
+                    "SELECT ${DBKeys.KEY_ID} FROM ${DBKeys.TABLE_NOVEL_TAG} WHERE ${DBKeys.KEY_NAME} = ?",
+                    arrayOf(name)
+                )
+                if (c != null) {
+                    if (c.moveToFirst()) tagId = c.getLong(0)
+                    c.close()
+                }
+            }
+            if (tagId != -1L) sectionToTagId[sectionId] = tagId
+        }
+
+        // Link every novel to the tag for its current section.
+        val novelCursor = db.rawQuery(
+            "SELECT ${DBKeys.KEY_ID}, ${DBKeys.KEY_NOVEL_SECTION_ID} FROM ${DBKeys.TABLE_NOVEL}", null
+        )
+        if (novelCursor != null) {
+            if (novelCursor.moveToFirst()) {
+                db.beginTransaction()
+                try {
+                    do {
+                        val novelId = novelCursor.getLong(novelCursor.getColumnIndex(DBKeys.KEY_ID))
+                        val sectionId = novelCursor.getLong(novelCursor.getColumnIndex(DBKeys.KEY_NOVEL_SECTION_ID))
+                        val tagId = sectionToTagId[sectionId] ?: sectionToTagId[-1L] ?: continue
+                        val link = ContentValues()
+                        link.put(DBKeys.KEY_NOVEL_ID, novelId)
+                        link.put(DBKeys.KEY_TAG_ID, tagId)
+                        db.insertWithOnConflict(
+                            DBKeys.TABLE_NOVEL_TAG_CROSS_REF, null, link, SQLiteDatabase.CONFLICT_IGNORE
+                        )
+                    } while (novelCursor.moveToNext())
+                    db.setTransactionSuccessful()
+                } finally {
+                    db.endTransaction()
+                }
+            }
+            novelCursor.close()
+        }
+    }
+
+    /**
+     * Default-section display name used during migration. Mirrors R.string.default_novel_section_name
+     * ("Currently Reading") but read from resources so a localized install keeps its label.
+     */
+    private fun defaultSectionName(): String = try {
+        appContext.getString(io.github.gmathi.novellibrary.R.string.default_novel_section_name)
+    } catch (e: Exception) {
+        "Currently Reading"
     }
 
     /**
@@ -297,6 +431,8 @@ private constructor(private val appContext: Context) : SQLiteOpenHelper(
         db.execSQL("DROP TABLE IF EXISTS ${DBKeys.TABLE_DOWNLOAD}")
         db.execSQL("DROP TABLE IF EXISTS ${DBKeys.TABLE_NOVEL_SECTION}")
         db.execSQL("DROP TABLE IF EXISTS ${DBKeys.TABLE_LARGE_PREFERENCE}")
+        db.execSQL("DROP TABLE IF EXISTS ${DBKeys.TABLE_NOVEL_TAG}")
+        db.execSQL("DROP TABLE IF EXISTS ${DBKeys.TABLE_NOVEL_TAG_CROSS_REF}")
 
         db.execSQL("DROP INDEX IF EXISTS ${DBKeys.INDEX_WEB_PAGE}")
         db.execSQL("DROP INDEX IF EXISTS ${DBKeys.INDEX_WEB_PAGE_SETTINGS}")

@@ -44,6 +44,8 @@ class DataCenter(context: Context) {
 
         private const val IS_DARK_THEME = "isDarkTheme"
         private const val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
+        private const val USE_NEW_LIBRARY = "useNewLibrary"
+        private const val LIBRARY_GRID_COLUMNS = "libraryGridColumns"
         private const val APP_VERSION_CODE = "appVersionCode"
         private const val TEXT_SIZE = "textSize"
         private const val READER_MODE = "cleanPages"
@@ -67,6 +69,7 @@ class DataCenter(context: Context) {
         private const val SHOW_READER_SCROLL = "showReaderScroll"
         private const val SHOW_CHAPTER_COMMENTS = "showChapterComments"
         private const val ENABLE_VOLUME_SCROLL = "volumeScroll"
+        private const val AUTO_DOWNLOAD_NEW_CHAPTERS = "autoDownloadNewChapters"
         private const val SCROLL_LENGTH = "scrollLength"
         private const val KEEP_SCREEN_ON = "keepScreenOn"
         private const val ENABLE_IMMERSIVE_MODE = "enableImmersiveMode"
@@ -311,6 +314,23 @@ class DataCenter(context: Context) {
         get() = prefs.getBoolean(LOAD_LIBRARY_SCREEN, false)
         set(value) = prefs.edit().putBoolean(LOAD_LIBRARY_SCREEN, value).apply()
 
+    /**
+     * Whether the new Compose, tag-based library experience is shown. Defaults to true so the new
+     * library is the default; turning it off in settings falls back to the legacy
+     * section-tabbed [LibraryPagerFragment]. Both read the same novels; only the organization UI
+     * differs (tags vs sections).
+     */
+    var useNewLibrary: Boolean
+        get() = prefs.getBoolean(USE_NEW_LIBRARY, true)
+        set(value) = prefs.edit().putBoolean(USE_NEW_LIBRARY, value).apply()
+
+    /**
+     * Number of columns in the new Compose library cover grid. Clamped to 1..4; defaults to 2.
+     */
+    var libraryGridColumns: Int
+        get() = prefs.getInt(LIBRARY_GRID_COLUMNS, 2).coerceIn(1, 4)
+        set(value) = prefs.edit().putInt(LIBRARY_GRID_COLUMNS, value.coerceIn(1, 4)).apply()
+
     var appVersionCode: Int
         get() = prefs.getInt(APP_VERSION_CODE, 0)
         set(value) = prefs.edit().putInt(APP_VERSION_CODE, value).apply()
@@ -370,6 +390,11 @@ class DataCenter(context: Context) {
     var enableVolumeScroll: Boolean
         get() = prefs.getBoolean(ENABLE_VOLUME_SCROLL, true)
         set(value) = prefs.edit().putBoolean(ENABLE_VOLUME_SCROLL, value).apply()
+
+    /** Master switch for the per-novel "auto-download new chapters" behaviour. Off by default. */
+    var autoDownloadNewChapters: Boolean
+        get() = prefs.getBoolean(AUTO_DOWNLOAD_NEW_CHAPTERS, false)
+        set(value) = prefs.edit().putBoolean(AUTO_DOWNLOAD_NEW_CHAPTERS, value).apply()
 
     var volumeScrollLength: Int
         get() = prefs.getInt(SCROLL_LENGTH, Constants.VOLUME_SCROLL_LENGTH_DEFAULT)
@@ -476,9 +501,21 @@ class DataCenter(context: Context) {
     /**
      * Returns the font-path preference for the novel identified by [novelId]. Falls back to
      * the app-wide default ([fontPath]) when no per-novel value has been stored yet.
+     *
+     * A stored per-novel path is validated the same way [fontPath] validates the app-wide value:
+     * a bundled asset path is trusted, but a filesystem path is only returned when the file still
+     * exists. When the file was removed or its storage is unavailable the stale entry is cleared
+     * and the app-wide default returned, so the font dialog never tries to load a missing file
+     * (#279).
      */
-    fun getFontPathForNovel(novelId: Long): String =
-        prefs.getString(FONT_PATH_PER_NOVEL_PREFIX + novelId, null) ?: fontPath
+    fun getFontPathForNovel(novelId: Long): String {
+        val stored = prefs.getString(FONT_PATH_PER_NOVEL_PREFIX + novelId, null) ?: return fontPath
+        if (!stored.startsWith("/android_asset/fonts/") && !File(stored).exists()) {
+            prefs.edit().remove(FONT_PATH_PER_NOVEL_PREFIX + novelId).apply()
+            return fontPath
+        }
+        return stored
+    }
 
     /**
      * Persists the font-path preference for the novel identified by [novelId]. Does not

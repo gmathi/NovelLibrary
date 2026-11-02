@@ -17,6 +17,9 @@ object Constants {
     const val VOLUME_SCROLL_LENGTH_STEP = 250
     const val VOLUME_SCROLL_LENGTH_MIN = -10
     const val VOLUME_SCROLL_LENGTH_MAX = 10
+    /** Tolerance (px) for treating the WebView as scrolled to the bottom, so a sub-pixel
+     *  scale/content-height mismatch doesn't block the volume-down chapter switch. */
+    const val VOLUME_SCROLL_BOTTOM_THRESHOLD = 10
     const val IMMERSIVE_MODE_FLAGS = (SYSTEM_UI_FLAG_LAYOUT_STABLE
             or SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
             or SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
@@ -110,6 +113,7 @@ object Constants {
         const val OTHER_LINKED_WEB_PAGES = "otherWebPages"
         const val IS_FAVORITE = "isFavorite"
         const val HASH_CODE = "hashCode"
+        const val AUTO_DOWNLOAD = "autoDownload"
     }
 
     object LargePreferenceKeys {
