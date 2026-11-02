@@ -45,6 +45,7 @@ class DataCenter(context: Context) {
         private const val IS_DARK_THEME = "isDarkTheme"
         private const val LOAD_LIBRARY_SCREEN = "loadLibraryScreen"
         private const val USE_NEW_LIBRARY = "useNewLibrary"
+        private const val LIBRARY_GRID_COLUMNS = "libraryGridColumns"
         private const val APP_VERSION_CODE = "appVersionCode"
         private const val TEXT_SIZE = "textSize"
         private const val READER_MODE = "cleanPages"
@@ -322,6 +323,13 @@ class DataCenter(context: Context) {
     var useNewLibrary: Boolean
         get() = prefs.getBoolean(USE_NEW_LIBRARY, true)
         set(value) = prefs.edit().putBoolean(USE_NEW_LIBRARY, value).apply()
+
+    /**
+     * Number of columns in the new Compose library cover grid. Clamped to 1..4; defaults to 2.
+     */
+    var libraryGridColumns: Int
+        get() = prefs.getInt(LIBRARY_GRID_COLUMNS, 2).coerceIn(1, 4)
+        set(value) = prefs.edit().putInt(LIBRARY_GRID_COLUMNS, value.coerceIn(1, 4)).apply()
 
     var appVersionCode: Int
         get() = prefs.getInt(APP_VERSION_CODE, 0)

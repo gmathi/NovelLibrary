@@ -57,6 +57,7 @@ class NewSettingsActivity : ComponentActivity() {
     private var showChaptersLeftBadge by mutableStateOf(false)
     private var loadLibraryScreen by mutableStateOf(false)
     private var useNewLibrary by mutableStateOf(true)
+    private var libraryGridColumns by mutableStateOf(2)
     private var enableNotifications by mutableStateOf(false)
     private var dohProviderIndex by mutableStateOf(0)
     private var useAiTts by mutableStateOf(false)
@@ -102,6 +103,7 @@ class NewSettingsActivity : ComponentActivity() {
                         showChaptersLeftBadge = showChaptersLeftBadge,
                         loadLibraryScreen = loadLibraryScreen,
                         useNewLibrary = useNewLibrary,
+                        libraryGridColumns = libraryGridColumns,
                         enableNotifications = enableNotifications,
                         onNightModeChange = { value ->
                             nightMode = value
@@ -115,6 +117,7 @@ class NewSettingsActivity : ComponentActivity() {
                         onShowChaptersLeftBadgeChange = { value -> showChaptersLeftBadge = value; dataCenter.showChaptersLeftBadge = value },
                         onLoadLibraryScreenChange = { value -> loadLibraryScreen = value; dataCenter.loadLibraryScreen = value },
                         onUseNewLibraryChange = { value -> useNewLibrary = value; dataCenter.useNewLibrary = value },
+                        onLibraryGridColumnsChange = { value -> libraryGridColumns = value; dataCenter.libraryGridColumns = value },
                         onEnableNotificationsChange = { value ->
                             enableNotifications = value
                             dataCenter.enableNotifications = value
@@ -193,6 +196,7 @@ class NewSettingsActivity : ComponentActivity() {
         showChaptersLeftBadge = dataCenter.showChaptersLeftBadge
         loadLibraryScreen = dataCenter.loadLibraryScreen
         useNewLibrary = dataCenter.useNewLibrary
+        libraryGridColumns = dataCenter.libraryGridColumns
         enableNotifications = dataCenter.enableNotifications
         dohProviderIndex = dataCenter.dohProvider
         useAiTts = dataCenter.useAiTts

@@ -35,11 +35,13 @@ import io.github.gmathi.novellibrary.compose.common.EmptyView
 import io.github.gmathi.novellibrary.compose.common.URLImage
 import io.github.gmathi.novellibrary.model.database.Novel
 import io.github.gmathi.novellibrary.model.database.NovelTag
+import io.github.gmathi.novellibrary.model.preference.DataCenter
 import io.github.gmathi.novellibrary.util.Constants
 import io.github.gmathi.novellibrary.viewmodel.NewLibraryViewModel
 import io.github.gmathi.novellibrary.viewmodel.SortDirection
 import io.github.gmathi.novellibrary.viewmodel.SortKey
 import io.github.gmathi.novellibrary.viewmodel.TagFilterMode
+import uy.kohesive.injekt.injectLazy
 
 /** Callbacks the host (fragment/activity) supplies for navigation and background work. */
 data class NewLibraryActions(
@@ -285,8 +287,12 @@ private fun NovelCoverGrid(
     onRemove: (Novel) -> Unit,
     onHardReset: (Novel) -> Unit
 ) {
+    val dataCenter: DataCenter by injectLazy()
+    // Read on each composition (a cheap prefs get) so a column-count change made in
+    // Settings takes effect when the user returns, even if this composition survived.
+    val columns = dataCenter.libraryGridColumns
     LazyVerticalGrid(
-        columns = GridCells.Fixed(2),
+        columns = GridCells.Fixed(columns),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(12.dp),
         horizontalArrangement = Arrangement.spacedBy(12.dp),
